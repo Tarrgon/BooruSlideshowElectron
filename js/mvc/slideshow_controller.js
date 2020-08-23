@@ -265,7 +265,34 @@ class SlideshowController
 		{
 			this._view.displayWarningMessage('You must select at least one of: Images, GIFs, and WEBMs.');
             return;
-		}
+        }
+
+        let nonAPITagsReg = new RegExp("\\[(.*?)\\]", "g")
+        let groupedTagsReg = new RegExp("{(.*?)}", "g")
+
+        let newText = ""
+        let nonAPITagsMatches = [...searchText.matchAll(nonAPITagsReg)]
+        let start = 0
+        for(let i = 0; i < nonAPITagsMatches.length; i++){
+            newText += searchText.substr(start, nonAPITagsMatches[i].index - start)
+            start = nonAPITagsMatches[i].index + nonAPITagsMatches[i][0].length
+        }
+        newText += searchText.substr(start, Infinity)
+        let final = ""
+        let groupedTagsMatches = [...newText.matchAll(groupedTagsReg)]
+        start = 0
+        for(let i = 0; i < groupedTagsMatches.length; i++){
+            final += newText.substr(start, groupedTagsMatches[i].index - start)
+            start = groupedTagsMatches[i].index + groupedTagsMatches[i][0].length
+        }
+        if(groupedTagsMatches.length > 0) final += newText.substr(start, Infinity)
+        if(final.length <= 0){
+            if(newText.length <= 0) final = searchText
+            else final = newText
+        }
+        final = final.replace(/\s+/g, " ")
+        this._model.groupedTags = groupedTagsMatches.map(t => t[1]).join(" ").split(" ").filter(t => t !== "")
+        this._model.nonAPITags = nonAPITagsMatches.map(t => t[1]).join(" ").split(" ").filter(t => t !== "")
 		
 		var message = '';
 		
@@ -278,7 +305,7 @@ class SlideshowController
 		
 		this._view.displayInfoMessage(message);
 		
-        this._model.performSearch(searchText);
+        this._model.performSearch(final, searchText);
     }
 
     sitesToSearchChanged(checked, site)

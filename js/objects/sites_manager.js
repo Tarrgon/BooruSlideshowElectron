@@ -22,6 +22,8 @@ class SitesManager {
 		this.sortingQueryTerms["(?:order|sort):(?:score|score_desc)\\b"] = this.sortingTypeScoreDesc;
 		this.sortingQueryTerms["(?:order|sort):score_asc\\b"] = this.sortingTypeScoreAsc;
 
+		this.totalSearchesDoneSinceLast = 0
+
 		// Doesn't seem that this is needed right now.
 		// Investigate later.
 		this.setupRequestHeaders();
@@ -168,11 +170,13 @@ class SitesManager {
 			});
 		}
 		else {
+			this.totalSearchesDoneSinceLast = 0
 			doneSearchingAllSitesCallback.call(this);
 		}
 	}
 
 	searchSites(doneSearchingSitesCallback) {
+		this.totalSearchesDoneSinceLast++
 		this.siteManagersCurrentlySearching = this.getCountOfActiveSiteManagersThatHaventExhaustedSearches();
 
 		for (var i = 0; i < this.siteManagers.length; i++) {
@@ -186,6 +190,112 @@ class SitesManager {
 
 					if (sitesManager.siteManagersCurrentlySearching == 0) {
 						sitesManager.buildSortedSlideList();
+						if (sitesManager.model.nonAPITags.length > 0) {
+							var orTags = sitesManager.model.nonAPITags.filter(tag => tag.startsWith("~"))
+							var orRegex = new RegExp("\\s" + orTags.join("\\s|\\s"))
+							orRegex = new RegExp(orRegex.toString().replace(/~/g, "").slice(1, -1) + "\\s", "gi")
+							var notTags = sitesManager.model.nonAPITags.filter(tag => tag.startsWith("-"))
+							var notRegex = new RegExp("\\s" + notTags.join("\\s|\\s"))
+							notRegex = new RegExp(notRegex.toString().replace(/-/g, "").slice(1, -1) + "\\s", "gi")
+							var items = sitesManager.allSortedSlides.filter((item) => {
+								if (item.passedAllChecks) return true
+								var passedOr = true
+								var passedWild = true
+								if (!item.tags) return false
+								if (item.tags == "") return false
+								if (typeof item.tags != "string") return false
+								for (let i = 0; i < sitesManager.model.nonAPITags.length; i++) {
+									if (sitesManager.model.nonAPITags[i].startsWith("-") && !sitesManager.model.nonAPITags[i].endsWith("*")) {
+										let tags = (" " + item.tags.split(" ").join("  ") + " ")
+										let matched = tags.match(notRegex)
+										if (matched) return false
+									} else if (sitesManager.model.nonAPITags[i].startsWith("-") && sitesManager.model.nonAPITags[i].endsWith("*") && item.tags.includes(" " + sitesManager.model.nonAPITags[i].slice(1, -1))) {
+										return false
+									} else if (sitesManager.model.nonAPITags[i].startsWith("~")) {
+										let tags = (" " + item.tags.split(" ").join("  ") + " ")
+										let matched = tags.match(orRegex)
+										// console.log(tags, regex, matched)
+										passedOr = matched && matched.length > 0
+									} else if (sitesManager.model.nonAPITags[i].endsWith("*") && !sitesManager.model.nonAPITags[i].startsWith("-")) {
+										passedWild = item.tags.includes(sitesManager.model.nonAPITags[i].slice(0, -1))
+									}
+								}
+								let noOrNotWildTags = sitesManager.model.nonAPITags.filter(tag => !tag.startsWith("-") && !tag.startsWith("~") && !tag.endsWith("*"))
+								let regex = new RegExp("\\s" + noOrNotWildTags.join("\\s|\\s"))
+								regex = new RegExp(regex.toString().slice(1, -1) + "\\s", "gi")
+								let tags = (" " + item.tags.split(" ").join("  ") + " ")
+								let matched = tags.match(regex)
+								// console.log(passedOr, passedWild, matched != null && matched.length == noOrNotWildTags.length)
+								return (noOrNotWildTags.length == 0 || matched != null && matched.length == noOrNotWildTags.length) && passedOr && passedWild
+							})
+							sitesManager.allSortedSlides = items
+						}
+
+						// if (sitesManager.model.groupedTags.length > 0) {
+						//     var orTags = sitesManager.model.groupedTags.filter(tag => tag.startsWith("~"))
+						//     var orRegex = new RegExp("\\s" + orTags.join("\\s|\\s"))
+						//     orRegex = new RegExp(orRegex.toString().replace(/~/g, "").slice(1, -1) + "\\s", "gi")
+						//     var notTags = sitesManager.model.groupedTags.filter(tag => tag.startsWith("-"))
+						//     var notRegex = new RegExp("\\s" + notTags.join("\\s|\\s"))
+						//     notRegex = new RegExp(notRegex.toString().replace(/-/g, "").slice(1, -1) + "\\s", "gi")
+						//     items = items.filter((item) => {
+						//         if (item.passedAllChecks) return true
+						//         var passedOr = true
+						//         var passedWild = true
+						//         var passedAnd = true
+						//         if (!item.tags) return false
+						//         if (item.tags == "") return false
+						//         if (typeof item.tags != "string") return false
+						//         for (let i = 0; i < sitesManager.model.groupedTags.length; i++) {
+						//             if (!sitesManager.model.groupedTags[i].includes("&&")) {
+						//                 if (sitesManager.model.groupedTags[i].startsWith("-") && !sitesManager.model.groupedTags[i].endsWith("*")) {
+						//                     let tags = (" " + item.tags.split(" ").join("  ") + " ")
+						//                     let matched = tags.match(notRegex)
+						//                     if (matched) return false
+						//                 } else if (sitesManager.model.groupedTags[i].startsWith("-") && sitesManager.model.groupedTags[i].endsWith("*") && item.tags.includes(" " + sitesManager.model.groupedTags[i].slice(1, -1))) {
+						//                     return false
+						//                 } else if (sitesManager.model.groupedTags[i].startsWith("~")) {
+						//                     let tags = (" " + item.tags.split(" ").join("  ") + " ")
+						//                     let matched = tags.match(orRegex)
+						//                     // console.log(tags, regex, matched)
+						//                     passedOr = matched && matched.length > 0
+						//                 } else if (sitesManager.model.groupedTags[i].endsWith("*") && !sitesManager.model.groupedTags[i].startsWith("-")) {
+						//                     passedWild = item.tags.includes(sitesManager.model.groupedTags[i].slice(0, -1))
+						//                 }
+						//             } else {
+						//                 let tagsToInclude = sitesManager.model.groupedTags[i].replace(/&&/g, " ").split(" ")
+						//                 for (let i = 0; i < tagsToInclude.length; i++) {
+						//                     if (sitesManager.model.groupedTags[i].startsWith("-") && !sitesManager.model.groupedTags[i].endsWith("*")) {
+						//                         let tags = (" " + item.tags.split(" ").join("  ") + " ")
+						//                         let matched = tags.match(notRegex)
+						//                         if (matched) return false
+						//                     } else if (sitesManager.model.groupedTags[i].startsWith("-") && sitesManager.model.groupedTags[i].endsWith("*") && item.tags.includes(" " + sitesManager.model.groupedTags[i].slice(1, -1))) {
+						//                         return false
+						//                     } else if (sitesManager.model.groupedTags[i].startsWith("~")) {
+						//                         let tags = (" " + item.tags.split(" ").join("  ") + " ")
+						//                         let matched = tags.match(orRegex)
+						//                         // console.log(tags, regex, matched)
+						//                         passedOr = matched && matched.length > 0
+						//                     } else if (sitesManager.model.groupedTags[i].endsWith("*") && !sitesManager.model.groupedTags[i].startsWith("-")) {
+						//                         passedWild = item.tags.includes(sitesManager.model.groupedTags[i].slice(0, -1))
+						//                     }
+						//                 }
+						//             }
+						//         }
+						//         let noOrNotWildTags = sitesManager.model.groupedTags.filter(tag => !tag.startsWith("-") && !tag.startsWith("~") && !tag.endsWith("*"))
+						//         let regex = new RegExp("\\s" + noOrNotWildTags.join("\\s|\\s"))
+						//         regex = new RegExp(regex.toString().slice(1, -1) + "\\s", "gi")
+						//         let tags = (" " + item.tags.split(" ").join("  ") + " ")
+						//         let matched = tags.match(regex)
+						//         // console.log(passedOr, passedWild, matched !=  null && matched.length == noOrNotWildTags.length)
+						//         let pass = (noOrNotWildTags.length == 0 || matched != null && matched.length == noOrNotWildTags.length) && passedOr && passedWild
+						//         item.passedAllChecks = pass
+						//         return pass
+						//     })
+						//     console.log(items)
+						//     sitesManager.allSortedSlides = items
+						// }
+						// The above is grouped tags, but I never figured out how I should implement it. I left it here so that if I ever come back to it, it has a starting point.
 						doneSearchingSitesCallback.call(sitesManager);
 					}
 				});
@@ -262,6 +372,8 @@ class SitesManager {
 	}
 
 	doMoreSlidesNeedToBeLoaded() {
+		// console.log(this.totalSearchesDoneSinceLast)
+		if(this.totalSearchesDoneSinceLast > 10) return false
 		if (!this.areThereMoreLoadableSlides()) {
 			return false;
 		}
@@ -303,30 +415,26 @@ class SitesManager {
 		});
 	}
 
-	increaseCurrentSlideNumber(callbackForAfterPossiblyLoadingMoreSlides) {
+	increaseCurrentSlideNumber(callback) {
 		if (this.currentSlideNumber < this.getTotalSlideNumber()) {
 			this.setCurrentSlideNumber(this.currentSlideNumber + 1);
-
-			var sitesManager = this;
+			
+			callback.call(this)
 
 			this.performSearchUntilWeHaveEnoughSlides(function () {
-				callbackForAfterPossiblyLoadingMoreSlides.call(sitesManager);
-
 				this.preloadNextSlideIfNeeded();
 			});
 		}
 	}
 
-	increaseCurrentSlideNumberByTen(callbackForAfterPossiblyLoadingMoreSlides) {
+	increaseCurrentSlideNumberByTen(callback) {
 		if (this.currentSlideNumber < this.getTotalSlideNumber()) {
 			var newSlideNumber = Math.min(this.currentSlideNumber + 10, this.getTotalSlideNumber())
 			this.setCurrentSlideNumber(newSlideNumber);
 
-			var sitesManager = this;
+			callback.call(this)
 
 			this.performSearchUntilWeHaveEnoughSlides(function () {
-				callbackForAfterPossiblyLoadingMoreSlides.call(sitesManager);
-
 				this.preloadNextSlideIfNeeded();
 			});
 		}

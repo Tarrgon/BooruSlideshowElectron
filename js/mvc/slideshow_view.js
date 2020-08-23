@@ -1082,11 +1082,11 @@ class SlideshowView {
 
     updateFavoriteButton() {
         if (this._model.isCurrentSlideFaved()) {
-            console.log("IS FAVE");
+            // console.log("IS FAVE");
             this.uiElements.favoriteButton.classList.add("faved");
         }
         else {
-            console.log("IS NOT FAVE");
+            // console.log("IS NOT FAVE");
             this.uiElements.favoriteButton.classList.remove("faved");
         }
     }
