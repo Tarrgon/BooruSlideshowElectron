@@ -1,0 +1,17 @@
+node_modules/
+
+booruslideshowelectron-linux-arm64/
+
+booruslideshowelectron-linux-armv7l/
+
+booruslideshowelectron-linux-ia32/
+
+booruslideshowelectron-linux-x64/
+
+booruslideshowelectron-win32-arm64/
+
+booruslideshowelectron-win32-ia32/
+
+booruslideshowelectron-win32-x64/
+
+*.zip

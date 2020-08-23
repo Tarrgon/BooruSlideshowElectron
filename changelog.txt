@@ -1,0 +1,204 @@
+Changelog
+
+Version 8.9
+* [Feature] Allow inclusion of duplicate MD5 tags
+
+Version 8.6
+* [Feature] Added E621 login capabilities to see all posts
+
+Version 8.5
+* [Feature] Wildcards, ors and nots added to the favorites filter (end with *, start with ~, start with -, respectively. You can not wildcard as well ex. -male*)
+
+Version 8.4
+* [Fix] E621 bug
+
+Verson 8.3
+* [Feature] Filter favorites
+* [Feature] Checkboxes to include ratings (Explicit, Questionable and Safe) (These are tagged by users on sites, this filters it by what they believe it is)
+
+Version 8.2
+* [Change] Meta data change
+
+Version 8.1
+* [Feature] Press E -> Opens current image in new tab
+* [Fix] E621 updated, now compatible
+
+Version 8.0
+* [Feature] Favorites (with simple navigation)
+* [Feature] Press G -> Adds the current image to your personal list
+* [Feature] Press L -> Saves the current image to Downloads/bs/
+
+Version 7.19
+* [Fix] Made the "Store Search History" checkbox actually work
+
+Version 7.18
+* [Feature] Added a search history (which can be disabled or cleaned)
+* [Feature] Added support for atfbooru.ninja
+* [Feature] Added support for xbooru.com
+* [Fix] Fixed danbooru thumbnails not displaying properly
+
+Version 7.17
+* [Change] Removed IbSearch since it has been down for a long time
+* [Fix] Will no longer try to search offline sites
+* [Fix] Fixed some danbooru images that were not displaying properly
+* [Fix] Added support for derpibooru special search syntax
+* [Fix] If a search runs into an error, it will no longer disable further subsequent searches
+* [Fix] Sites added in the future will not clear your existing site settings
+
+Version 7.16
+* [Fix] Fixed Derpibooru filtering issue
+
+Version 7.15
+* [Feature] Added support for realbooru.com
+
+Version 7.14
+* [Feature] Only one image with the same MD5 will be shown (thanks to DArrigoni)
+* [Feature] MP4 support (thanks to DArrigoni)
+* [Feature] The blacklist can now be hidden
+
+Version 7.13
+* [Fix] Multi-word search terms now work in for Derpibooru (use underscores)
+
+Version 7.12
+* [Fix] Separated status web call from the search web call so they won't interrupt each other.
+
+Version 7.11
+* [Feature] Indicator if an API is down (not fully tested)
+* [Fix] Fixed search that broke due to an API change on Konachan
+* [Fix] Sort order of images from ibsearch
+
+Version 7.10
+* [Fix/Feature] Supports derpibooru's use of API keys to support increased search results
+
+Version 7.9
+* [Fix] Fixed a few issues with UTF characters
+
+Version 7.8
+* [Fix] Fixed bug introduced in 7.6 where searches would fail if the blacklist wasn't set
+
+Version 7.7
+* [Feature] Added shortcut of "F" to Auto-Fit
+
+Version 7.6
+* [Feature] Added a basic blacklist
+
+Version 7.5
+* [Feature] WEBM volume level is saved
+* [Feature] Added options to include/exclude images and GIFs in addition to the WEBMs.
+
+Version 7.4
+* [Feature] "A" key -> previous image, "D" key -> next image, "W" key -> back 10 images, "S" key -> forward 10 images.
+* [Feature] Pressing Space will start/stop the slideshow like the Enter key.
+* [Change] Pressing Enter to search will remove the focus from the textbox so that you can start navigating instantly.
+* [Change] The "tips" section is now a "hotkeys" section, and it has more info.
+
+Version 7.3
+* [Fix] Minor fix to remove poor coding errors
+
+Version 7.2
+* [Fix] Switched calls to rule34.xxx to HTTPS, as they weren't working anymore
+
+Version 7.1
+* [Bug fix] Removed debugging info that was accidentally left in.
+
+Version 7.0
+* [Feature] Added support for WebM videos. The option is off by default, but can be enabled in the options. The sound is also defaulted off, and I'll have to make it a sticky setting later.
+* [Change] Changed 'seconds per image' to 'seconds per slide'
+* [Change] Changed 'auto-fit image' to 'auto-fit slide'
+* [Bug fix] Cleared max width/height values are now saved.
+* [Bug fix] Made the 'searching' status message not show during warnings.
+
+Version 6.4
+* [Bug fix] Gelbooru is now working again since they've switched to only work with HTTPS.
+
+Version 6.3
+* [Feature] Enabled usage in incognito mode.
+
+Version 6.2
+* [Feature] Using "sort:-upload" will only affect ibsearch results.
+
+Version 6.1
+* [Feature] Added support for site derpibooru.org
+* [Feature] Added a "Searching for images..." indicator on initial search.
+
+Version 6.0
+* [Feature] Added tag associations. This allows for cross-booru searching of related tags. This currently only supports "rating", "sort", and "order" tags, but lays the groundwork for more to come.
+* [Feature + Bug fix] Results were all originally sorted by date, even if they were sorted within the query. Added the first implementation of sorting based on your search, with it defaulting to date just like the boorus. Sorting will be refined further in the future, but please send feedback on any issues that you notice.
+
+Version 5.5
+* [Feature] Added support for site yande.re
+* [Feature] Added support for site konachan.com
+
+Version 5.4
+* [Bug fix] Seconds per Image will now correctly default to 6 seconds for new users.
+
+Version 5.3
+* [Feature] Added support for site IbSearch.xxx
+
+Version 5.2
+* [Bug fix] Fixed issue that made Rule34 images stop working.
+
+Version 5.1
+* [Bug fix] Opening the image source by clicking on it will once again pause the slideshow.
+
+Version 5.0
+* [Feature] New auto-fit height/width option.
+* [Feature] Changes to options will take effect immediately.
+* [Bug fix] Settings are now saved right after being changed instead of after performing a search.
+
+Version 4.4
+* [Feature] Clicking on a thumbnail will try to take you to the image even if it is not yet loaded
+* [Feature] Opening a post by clicking on the image will now pause the slideshow
+* [Bug fix] Slideshow stopping after skipping through images too fast
+* [Bug fix] Slideshow loops back to the first image when clicking Last during a playing slideshow
+* [UI change] Darkened scrollbar so that it is less annoying in fullscreen mode
+
+Version 4.3
+* [Bug fix] Fixed issues making results from Gelbooru not load (some things on Gelbooru's server changed recently)
+* [UI change] Added message that you need to be logged in to Gelbooru for it to return results
+
+Version 4.2
+* [New feature] Selected Sites and Options are now saved
+* [New feature] Clicking on a thumbnail for a loaded image takes you to it
+* [UI change] Made pause button not as ugly
+
+Version 4.1
+* [New feature] Thumbnail list for nearby images
+* [New feature] Preloading of all nearby images
+
+Version 4.0
+* Updated display
+* Minor bug fixes
+
+Version 3.4
+* Fixed the slideshow from continuing while images are still loading
+
+Version 3.3
+* Fixed a bug where loading animations were displayed when a warning message was displayed
+
+Version 3.2
+* Added loading animation
+
+Version 3.1
+* Added icons for the favicon and the extension list
+* Added support for site:
+	rule34.xxx
+* Sorted sites list by name
+
+Version 3.0
+* Added an image preloader to make the timing of the slideshow much more accurate
+* Added support for sites:
+	safebooru.org
+	gelbooru.com
+
+Version 2.1
+* Fixed an issue with images not clearing between searches
+
+Version 2.0
+* Added support to get results from more than one booru. The results are roughly combined based on date.
+* Added a "Sites to Search" section
+* Added site e621
+* Fixed navigations occurring when hitting left/right/enter keys while on max width/height textboxes
+
+Version 1.0
+* Created initial system
