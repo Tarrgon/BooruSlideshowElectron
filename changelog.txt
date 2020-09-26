@@ -1,5 +1,8 @@
 Changelog
 
+Version 1.3.0
+* [Feature] Randomize personal list
+
 Version 1.2.0
 * [Change] Changelog will now follow the proper version number
 * [Fix] Increase slide number not changed while searching, but has slides to move to

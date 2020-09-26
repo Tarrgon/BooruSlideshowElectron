@@ -35,6 +35,7 @@ class PersonalListView
         this.autoFitSlideChangedEvent = new Event(this);
         this.removeCurrentImageFromFavesPressedEvent = new Event(this);
         this.reverseOrderClickEvent = new Event(this)
+        this.randomizeOrderClickEvent = new Event(this)
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -208,6 +209,10 @@ class PersonalListView
 
         this.uiElements.reverseOrderButton.addEventListener('click', function(){
             _this.reverseOrderClickEvent.notify()
+        })
+
+        this.uiElements.randomizeOrderButton.addEventListener('click', function(){
+            _this.randomizeOrderClickEvent.notify()
         })
     
         this.uiElements.filterTextBox.addEventListener('keypress', function (e) {

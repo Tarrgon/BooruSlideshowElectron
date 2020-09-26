@@ -31,6 +31,10 @@ class PersonalListController
             _this.reverseOrder();
         });
 
+        this._view.randomizeOrderClickEvent.attach(function() {
+            _this.randomizeOrder();
+        });
+
         this._view.currentVideoClickedEvent.attach(function() {
             _this.currentSlideClicked();
         });
@@ -122,9 +126,24 @@ class PersonalListController
     }
 
     reverseOrder(){
-        this._model.personalList.personalListItems.reverse()
         if(this._model.filteredPersonalList) this._model.filteredPersonalList.personalListItems.reverse()
+        else this._model.personalList.personalListItems.reverse()
         this._model.currentSlideChangedEvent.notify();
+    }
+
+    randomizeOrder() {
+        if(this._model.filteredPersonalList) this.randomize(this._model.filteredPersonalList.personalListItems)
+        else this.randomize(this._model.personalList.personalListItems)
+        this._model.currentSlideChangedEvent.notify();
+    }
+
+    randomize(arr) {
+        for(let i = 0; i < arr.length; i++) {
+            let newIndex = Math.floor(Math.random() * arr.length)
+            let temp = arr[newIndex]
+            arr[newIndex] = arr[i]
+            arr[i] = temp
+        }
     }
 	
     videoVolumeChanged()
