@@ -75,6 +75,7 @@ class SlideshowModel {
         this.favoriteButtonUpdatedEvent = new Event(this);
         this.includeDupesUpdatedEvent = new Event(this);
         this.includeFavoritesUpdatedEvent = new Event(this)
+        this.favoriteRemotelyUpdatedEvent = new Event(this)
 
         this.dataLoader = new DataLoader(this);
 
@@ -511,6 +512,14 @@ class SlideshowModel {
         this.includeFavoritesUpdatedEvent.notify();
     }
 
+    setFavoriteRemotely(onOrOff) {
+        this.favoriteRemotely = onOrOff;
+
+        this.dataLoader.saveFavoriteRemotely();
+
+        this.favoriteRemotelyUpdatedEvent.notify();
+    }
+
     setIncludeDupes(onOrOff) {
         this.includeDupes = onOrOff;
 
@@ -589,9 +598,19 @@ class SlideshowModel {
 
         if (this.isCurrentSlideFaved()) {
             this.personalList.tryToRemove(currentSlide);
+            if (this.view != null && this.view.getFavoriteRemotely()) {
+                if (currentSlide.siteId == SITE_E621) {
+                    this.sitesManager.siteManagers.find(sm => sm.id == SITE_E621).favorite(false, currentSlide.id)
+                }
+            }
         }
         else {
             this.personalList.tryToAdd(currentSlide);
+            if (this.view != null && this.view.getFavoriteRemotely()) {
+                if (currentSlide.siteId == SITE_E621) {
+                    this.sitesManager.siteManagers.find(sm => sm.id == SITE_E621).favorite(true, currentSlide.id)
+                }
+            }
         }
 
         // console.log("Added")

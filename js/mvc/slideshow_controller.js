@@ -120,6 +120,10 @@ class SlideshowController
             _this.includeFavoritesChanged();
         })
 
+        this._view.favoriteRemotelyChangedEvent.attach(function() {
+            _this.favoriteRemotelyChanged();
+        })
+
         this._view.includeDupesChangedEvent.attach(function () {
             _this.includeDupesChanged();
         });
@@ -408,6 +412,12 @@ class SlideshowController
         var includeFavorites = this._view.getIncludeFavorites();
 
         this._model.setIncludeFavorites(includeFavorites);
+    }
+
+    favoriteRemotelyChanged() {
+        var favoriteRemotelyChanged = this._view.getFavoriteRemotely();
+
+        this._model.setFavoriteRemotely(favoriteRemotelyChanged);
     }
 
     includeDupesChanged()

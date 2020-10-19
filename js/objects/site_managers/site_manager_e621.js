@@ -45,6 +45,21 @@ class SiteManagerE621 extends SiteManager {
 		return arr.join(" ")
 	}
 
+	favorite(value, postId) {
+		if(!(this.sitesManager.model.e621ApiKey && this.sitesManager.model.e621Login)) {
+			console.log("Could not favorite remotely: not logged in")
+			return
+		}
+
+		if(value) {
+			let url = `${this.url}/favorites.json?login=${this.sitesManager.model.e621Login}&api_key=${this.sitesManager.model.e621ApiKey}&post_id=${postId}`
+			this.postRequest.makeWebsiteRequest(url, null, (txt, code) => {console.log(`Error favoriting remotely, code ${code}: ${txt}`)})
+		}else {
+			let url = `${this.url}/favorites/${postId}.json?login=${this.sitesManager.model.e621Login}&api_key=${this.sitesManager.model.e621ApiKey}`
+			this.deleteRequest.makeWebsiteRequest(url, null, (txt, code) => {console.log(`Error deleting favoriting remotely, code ${code}: ${txt}`)})
+		}
+	}
+
 	addSlide(jsonPost) {
 		// console.log(jsonPost)
 		if (!jsonPost.hasOwnProperty('id') ||

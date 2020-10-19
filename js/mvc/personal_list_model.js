@@ -19,7 +19,8 @@ class PersonalListModel{
         this.timer = null;
         this.timerMs = 0;
 
-        this.sitesManager = null;
+        this.sitesManager = new SitesManager(this, 20, 10)
+        this.cachedSiteManagers = []
 
         this.dataLoader = new DataLoader(this);
 
@@ -370,6 +371,15 @@ class PersonalListModel{
         if (currentSlide == null)
             return;
 
+        if(this.favoriteRemotely) {
+            if (currentSlide.siteId == SITE_E621) {
+                if(!this.cachedSiteManagers.find(sm => sm.id == SITE_E621)) {
+                    this.cachedSiteManagers.push(new SiteManagerE621(this.sitesManager, 100))
+                }
+                this.cachedSiteManagers.find(sm => sm.id == SITE_E621).favorite(false, currentSlide.id)
+            }
+        }
+
         this.personalList.tryToRemove(currentSlide);
 
         this.dataLoader.savePersonalList();
@@ -590,5 +600,17 @@ class PersonalListModel{
 		if (this.currentListItem > 0) {
 			return this.getCurrentSlide().isPreloaded;
 		}
-	}
+    }
+    
+    setE621ApiKey(e621ApiKey) {
+        this.e621ApiKey = e621ApiKey;
+    }
+
+    setE621Login(e621Login) {
+        this.e621Login = e621Login;
+    }
+
+    setFavoriteRemotely(onOrOff) {
+        this.favoriteRemotely = onOrOff;
+    }
 }

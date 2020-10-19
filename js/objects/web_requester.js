@@ -1,8 +1,8 @@
 class WebRequester
 {
-    constructor()
+    constructor(method)
     {
-        this.METHOD = 'GET';
+        this.METHOD = method || "GET";
     }
 
     getXhr(useSecondaryXhr = false)
@@ -36,7 +36,7 @@ class WebRequester
 		xhr.onload = function() {
             var responseText = xhr.responseText;
 
-			if (xhr.status == 200)
+			if (xhr.status.toString().startsWith("2"))
 			{
 				if (onSuccessResponse != null)
 				{

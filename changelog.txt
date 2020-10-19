@@ -1,12 +1,7 @@
 Changelog
 
-Version 1.3.0
-* [Feature] Randomize personal list
-
-Version 1.2.0
-* [Change] Changelog will now follow the proper version number
-* [Fix] Increase slide number not changed while searching, but has slides to move to
-* [Feature] Non-api tags. Surround tags in square brackets "[]" to make it perform local filtering. This is slow on many tags, it is recommended to use as a per-query blacklist, but will be fine for popularly-used tags
+Version 9.0
+* [Feature] Favorite remotely feature added (currently only works with e621, if you want me to see if other sites are possible, open an issue)
 
 Version 8.9
 * [Feature] Allow inclusion of duplicate MD5 tags

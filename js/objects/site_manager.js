@@ -2,7 +2,9 @@ class SiteManager
 {
     constructor(sitesManager, id, url, pageLimit)
     {
-		this.webRequester = new WebRequester();
+				this.webRequester = new WebRequester();
+				this.postRequest = new WebRequester("POST")
+				this.deleteRequest = new WebRequester("DELETE")
         this.sitesManager = sitesManager;
         this.id = id;
         this.url = url;

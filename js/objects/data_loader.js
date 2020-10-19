@@ -8,6 +8,7 @@ class DataLoader
 
     loadUserSettings()
     {
+        // console.log("loading")
         var _this = this;
 
         this.storage.getMany([
@@ -32,7 +33,8 @@ class DataLoader
             'storeHistory',
             'searchHistory',
             'includeDupes',
-            'includeFavorites',],
+            'includeFavorites',
+            'favoriteRemotely'],
 			function (error, data) {
                 for(let prop in data){
                     // console.log(prop, data[prop])
@@ -63,6 +65,7 @@ class DataLoader
 					var storeHistory = data['storeHistory'];
                     var searchHistory = data['searchHistory'];
                     var includeDupes = data['includeDupes']
+                    var favoriteRemotely = data['favoriteRemotely']
 					
 					if (videoVolume == null)
 					{
@@ -111,6 +114,20 @@ class DataLoader
 						}
 					}
                     
+                    if (e621Login != null && _this._model.e621Login != e621Login)
+                    {
+                        _this._model.setE621Login(e621Login);
+                    }
+
+                    if (e621ApiKey != null && _this._model.e621ApiKey != e621ApiKey)
+                    {
+                        _this._model.setE621ApiKey(e621ApiKey);
+                    }
+
+                    if(favoriteRemotely != null && _this._model.favoriteRemotely != favoriteRemotely) {
+                        _this._model.setFavoriteRemotely(favoriteRemotely);
+                    }
+
                     if (_this._model instanceof SlideshowModel)
                     {
                         if (sitesToSearch != null)
@@ -222,16 +239,6 @@ class DataLoader
                         if (derpibooruApiKey != null && _this._model.derpibooruApiKey != derpibooruApiKey)
                         {
                             _this._model.setDerpibooruApiKey(derpibooruApiKey);
-                        }
-
-                        if (e621Login != null && _this._model.e621Login != e621Login)
-                        {
-                            _this._model.setE621Login(e621Login);
-                        }
-
-                        if (e621ApiKey != null && _this._model.e621ApiKey != e621ApiKey)
-                        {
-                            _this._model.setE621ApiKey(e621ApiKey);
                         }
                         
                         if (storeHistory != null)
@@ -404,6 +411,10 @@ class DataLoader
     {
         // console.log("saved")
         this.storage.set('includeDupes', {'includeDupes': this._model.includeDupes});
+    }
+
+    saveFavoriteRemotely() {
+        this.storage.set('favoriteRemotely', {'favoriteRemotely': this._model.favoriteRemotely});
     }
 
     savePersonalList(items)

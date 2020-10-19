@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'tags': document.getElementById('tags'),
         'slideWrapper': document.getElementById('slide-wrapper'),
         'includeDupesCheckBox': document.getElementById('include-dupes'),
-        'includeFavoritesCheckBox': document.getElementById('include-faves')
+        'includeFavoritesCheckBox': document.getElementById('include-faves'),
+        'favoriteRemotelyCheckBox': document.getElementById('favorite-remotely')
     });
 });

@@ -49,6 +49,7 @@ class SlideshowView {
         this.favoriteKeyPressedEvent = new Event(this);
         this.favoriteButtonClickedEvent = new Event(this);
         this.includeFavoritesChangedEvent = new Event(this);
+        this.favoriteRemotelyChangedEvent = new Event(this);
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -127,6 +128,10 @@ class SlideshowView {
 
         this._model.includeFavoritesUpdatedEvent.attach(function () {
             _this.updateIncludeFavorites();
+        })
+
+        this._model.favoriteRemotelyUpdatedEvent.attach(function () {
+            _this.updateFavoriteRemotely();
         })
 
         this._model.includeDupesUpdatedEvent.attach(function () {
@@ -396,6 +401,10 @@ class SlideshowView {
 
         this.uiElements.favoriteButton.addEventListener('click', function () {
             _this.favoriteButtonClickedEvent.notify();
+        });
+
+        this.uiElements.favoriteRemotelyCheckBox.addEventListener('change', function () {
+            _this.favoriteRemotelyChangedEvent.notify();
         });
     }
 
@@ -919,6 +928,14 @@ class SlideshowView {
 
     getStoreHistory() {
         return this.uiElements.storeHistoryCheckBox.checked;
+    }
+
+    getFavoriteRemotely() {
+        return this.uiElements.favoriteRemotelyCheckBox.checked;
+    }
+
+    updateFavoriteRemotely() {
+        this.uiElements.favoriteRemotelyCheckBox.checked = this._model.favoriteRemotely;
     }
 
     updateAutoFitSlide() {
