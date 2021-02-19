@@ -15,40 +15,40 @@ class SiteManager
         this.hasExhaustedSearch = false;
         this.ranIntoErrorWhileSearching = false;
         this.isOnline = false;
-        
+
         this.siteQueryTermAssociations = SITE_QUERY_TERM_ASSOCIATIONS[id];
     }
-    
+
     buildPingRequestUrl()
 	{
 		console.log('buildPingRequestUrl() was not implemented.');
     }
-    
+
     buildRequestUrl(searchText, pageNumber)
 	{
 		console.log('buildRequestUrl() was not implemented.');
 	}
-    
+
     buildSiteSpecificQuery(searchText)
 	{
 		var query = searchText.trim();
-		
+
 		for (var queryTermToReplace in this.siteQueryTermAssociations)
 		{
 			var queryTermReplacement = this.siteQueryTermAssociations[queryTermToReplace];
-			
+
 			var queryTermRegexp = new RegExp(queryTermToReplace, 'i');
-			
+
 			query = query.replace(queryTermRegexp, queryTermReplacement);
 		}
-		
+
 		return query;
 	}
 
 	resetConnection()
 	{
 		this.webRequester.resetConnection();
-		
+
 		this.lastPageLoaded = 0;
 		this.isEnabled = false;
 		this.allUnsortedSlides = [];
@@ -64,7 +64,7 @@ class SiteManager
 	pingStatus(callback)
 	{
 		var url = this.buildPingRequestUrl();
-		
+
 		if (url != null)
 		{
 			var _this = this;
@@ -105,9 +105,9 @@ class SiteManager
 		this.ranIntoErrorWhileSearching = false;
 		var pageNumber = this.lastPageLoaded + 1;
 		var url = this.buildRequestUrl(searchText, pageNumber);
-		
+
 		var siteManager = this;
-		
+
 		if (url != null)
 		{
 			this.webRequester.makeWebsiteRequest(
@@ -128,11 +128,11 @@ class SiteManager
 	handleErrorFromSiteResponse(responseText, statusCode, hideVisibleWarning = false)
 	{
 		this.ranIntoErrorWhileSearching = true;
-		
+
 		var warningMessage = 'Error when calling site ' + this.url;
-		
+
 		var possibleJson = '';
-		
+
 		try
 		{
 			possibleJson = JSON.parse(responseText);
@@ -143,17 +143,17 @@ class SiteManager
 			console.log(responseText);
 			possibleJson = null;
 		}
-		
+
 		if (possibleJson != null && possibleJson.message != null)
 		{
 			warningMessage += ': ' + possibleJson.message;
 		}
-		
+
 		if (statusCode == 429)
         {
 			warningMessage += ' Requests were made too quickly. (Likely from the initial site status check.) Please try again.';
         }
-		
+
         if (!hideVisibleWarning)
             this.sitesManager.displayWarningMessage(warningMessage);
 	}
@@ -173,23 +173,43 @@ class SiteManager
 	{
 		var parser = new DOMParser();
 		var xml = parser.parseFromString(xmlResponseText, "text/xml");
-		
+
 		var xmlPosts = xml.getElementsByTagName("post");
-		
+
 		this.hasExhaustedSearch = (xmlPosts.length < this.pageLimit);
-		
+
 		for (var i = 0; i < xmlPosts.length; i++)
 		{
 			var xmlPost = xmlPosts[i];
-			
+
 			this.addSlide(xmlPost);
 		}
 	}
 
+  // rule34.paheal.net returns us invalid xml, we need to treat it as 'tag soup'.
+  // This is actually probably a more robust way of doing this in general, but
+  // it's... bad.
+  addHtmlSlides(htmlResponseText)
+  {
+    var parser = new DOMParser();
+		var html = parser.parseFromString(htmlResponseText, "text/html");
+
+    var htmlPosts = html.getElementsByTagName("tag");
+
+    this.hasExhaustedSearch = (htmlPosts.length < this.pageLimit);
+
+		for (var i = 0; i < htmlPosts.length; i++)
+		{
+			var htmlPost = htmlPosts[i];
+
+			this.addSlide(htmlPost);
+		}
+  }
+
 	addJsonSlides(jsonResponseText)
 	{
 		var jsonPosts;
-		
+
 		try
 		{
 			jsonPosts = JSON.parse(jsonResponseText);
@@ -200,7 +220,7 @@ class SiteManager
 			console.log(e);
 			return;
 		}
-		
+
 		if (this.id == SITE_DERPIBOORU)
 		{
 			jsonPosts = jsonPosts["images"];
@@ -208,13 +228,13 @@ class SiteManager
 			jsonPosts = jsonPosts["posts"]
 			// console.log(jsonPosts)
 		}
-		
+
 		this.hasExhaustedSearch = (jsonPosts.length < this.pageLimit);
 
 		for (var i = 0; i < jsonPosts.length; i++)
 		{
 			var jsonPost = jsonPosts[i];
-			
+
 			this.addSlide(jsonPost);
 		}
 	}
@@ -237,14 +257,14 @@ class SiteManager
 	isPathForSupportedMediaType(filePath)
 	{
 		var mediaType = this.getMediaTypeFromPath(filePath)
-		
+
 		return this.isMediaTypeSupported(mediaType);
 	}
 
 	getMediaTypeFromPath(filePath)
 	{
 		var fileExtension = filePath.substring(filePath.length - 4);
-		
+
 		switch (fileExtension.toLowerCase())
 		{
 			case 'webm':
@@ -269,7 +289,7 @@ class SiteManager
 
 	isRatingAllowed(rating){
 		if(!this.sitesManager.model.includeExplicit && !this.sitesManager.model.includeQuestionable && !this.sitesManager.model.includeSafe) return true
-		return (rating == "e" && this.sitesManager.model.includeExplicit) || 
+		return ((rating == "e" || rating == "?") && this.sitesManager.model.includeExplicit) ||
 		(rating == "q" && this.sitesManager.model.includeQuestionable) ||
 		(rating == "s" && this.sitesManager.model.includeSafe)
 	}
@@ -286,7 +306,7 @@ class SiteManager
 		{
 			url = 'http:' + url;
 		}
-		
+
 		return url;
 	}
 }

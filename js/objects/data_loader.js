@@ -66,7 +66,7 @@ class DataLoader
                     var searchHistory = data['searchHistory'];
                     var includeDupes = data['includeDupes']
                     var favoriteRemotely = data['favoriteRemotely']
-					
+
 					if (videoVolume == null)
 					{
 						_this._model.setVideoVolume(_this._model.videoVolume);
@@ -78,7 +78,7 @@ class DataLoader
 							_this._model.setVideoVolume(videoVolume);
 						}
 					}
-					
+
 					if (videoMuted == null)
 					{
 						_this._model.setVideoMuted(_this._model.videoMuted);
@@ -90,7 +90,7 @@ class DataLoader
 							_this._model.setVideoMuted(videoMuted);
 						}
 					}
-					
+
 					if (_this._model.secondsPerSlide != secondsPerSlide)
 					{
 						_this._model.setSecondsPerSlideIfValid(secondsPerSlide);
@@ -105,7 +105,7 @@ class DataLoader
 					{
 						_this._model.setMaxHeight(maxHeight);
 					}
-					
+
 					if (autoFitSlide != null)
 					{
 						if (_this._model.autoFitSlide != autoFitSlide)
@@ -113,7 +113,7 @@ class DataLoader
 							_this._model.setAutoFitSlide(autoFitSlide);
 						}
 					}
-                    
+
                     if (e621Login != null && _this._model.e621Login != e621Login)
                     {
                         _this._model.setE621Login(e621Login);
@@ -133,7 +133,7 @@ class DataLoader
                         if (sitesToSearch != null)
                         {
                             let cleanSitesToSearch = Object.assign({}, _this.sitesToSearch);
-    
+
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_ATFBOORU);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_DANBOORU);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_DERPIBOORU);
@@ -143,10 +143,11 @@ class DataLoader
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_KONACHAN);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_REALBOORU);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_RULE34);
+                            _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_PAHEAL);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_SAFEBOORU);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_XBOORU);
                             _this.addPropertyIfExists(sitesToSearch, cleanSitesToSearch, SITE_YANDERE);
-    
+
                             _this._model.setSitesToSearch(cleanSitesToSearch);
                         }
 
@@ -161,7 +162,7 @@ class DataLoader
                                 _this._model.setIncludeImages(includeImages);
                             }
                         }
-                        
+
                         if (includeGifs == null)
                         {
                             _this._model.setIncludeGifs(_this._model.includeGifs);
@@ -173,7 +174,7 @@ class DataLoader
                                 _this._model.setIncludeGifs(includeGifs);
                             }
                         }
-                        
+
                         if (includeWebms != null)
                         {
                             if (_this._model.includeWebms != includeWebms)
@@ -205,7 +206,7 @@ class DataLoader
                                 _this._model.setIncludeSafe(includeSafe);
                             }
                         }
-                        
+
                         if (includeFavorites != null)
                         {
                             // console.log("loaded: " + includeFavorites)
@@ -222,7 +223,7 @@ class DataLoader
                                 _this._model.setIncludeDupes(includeDupes);
                             }
                         }
-                        
+
                         if (hideBlacklist != null)
                         {
                             if (_this._model.hideBlacklist != hideBlacklist)
@@ -230,17 +231,17 @@ class DataLoader
                                 _this._model.setHideBlacklist(hideBlacklist);
                             }
                         }
-                        
+
                         if (blacklist != null && _this._model.blacklist != blacklist)
                         {
                             _this._model.setBlacklist(blacklist);
                         }
-                        
+
                         if (derpibooruApiKey != null && _this._model.derpibooruApiKey != derpibooruApiKey)
                         {
                             _this._model.setDerpibooruApiKey(derpibooruApiKey);
                         }
-                        
+
                         if (storeHistory != null)
                         {
                             if (_this._model.storeHistory != storeHistory)
@@ -248,7 +249,7 @@ class DataLoader
                                 _this._model.setStoreHistory(storeHistory);
                             }
                         }
-    
+
                         if (searchHistory != null)
                         {
                             if (_this._model.searchHistory.toString() != searchHistory.toString())
@@ -260,7 +261,7 @@ class DataLoader
 				}
 			}
         );
-        
+
         this.storage.get('personalListItems',
 			function (error, obj) {
                 // console.log(obj)
@@ -282,7 +283,7 @@ class DataLoader
 
 						if (_this._model.personalList != personalList)
 						{
-                            var personalList = 
+                            var personalList =
 							_this._model.setPersonalList(personalList);
 						}
                     }
@@ -299,12 +300,12 @@ class DataLoader
             cleanSitesToSearch[siteEnum] = sitesToSearch[siteEnum];
         }
     }
-	
+
     saveVideoVolume()
     {
         this.storage.set('videoVolume', {'videoVolume': this._model.videoVolume});
     }
-	
+
     saveVideoMuted()
     {
         this.storage.set('videoMuted', {'videoMuted': this._model.videoMuted});
@@ -334,17 +335,17 @@ class DataLoader
     {
         this.storage.set('autoFitSlide', {'autoFitSlide': this._model.autoFitSlide});
     }
-	
+
     saveIncludeImages()
     {
         this.storage.set('includeImages', {'includeImages': this._model.includeImages});
     }
-	
+
     saveIncludeGifs()
     {
         this.storage.set('includeGifs', {'includeGifs': this._model.includeGifs});
     }
-	
+
     saveIncludeWebms()
     {
         this.storage.set('includeWebms', {'includeWebms': this._model.includeWebms});
@@ -369,7 +370,7 @@ class DataLoader
     {
         this.storage.set('includeFavorites', {'includeFavorites': this._model.includeFavorites});
     }
-	
+
     saveHideBlacklist()
     {
         this.storage.set('hideBlacklist', {'hideBlacklist': this._model.hideBlacklist});
@@ -379,7 +380,7 @@ class DataLoader
     {
         this.storage.set('blacklist', {'blacklist': this._model.blacklist});
     }
-	
+
     saveDerpibooruApiKey()
     {
         this.storage.set('derpibooruApiKey', {'derpibooruApiKey': this._model.derpibooruApiKey});

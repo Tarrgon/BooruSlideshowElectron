@@ -7,6 +7,7 @@ let SITE_GELBOORU = 'GELB';
 let SITE_KONACHAN = 'KONA';
 let SITE_REALBOORU = 'REAL';
 let SITE_RULE34 = 'RULE';
+let SITE_PAHEAL = 'PAHE';
 let SITE_SAFEBOORU = 'SAFE';
 let SITE_XBOORU = 'XBOO';
 let SITE_YANDERE = 'YAND';
@@ -82,7 +83,7 @@ SITE_QUERY_TERM_ASSOCIATIONS[SITE_GELBOORU] = {
 	"rating:q\\S*" : "rating:questionable",
 	"rating:e\\S*" : "rating:explicit",
 	// Can't sort by ID
-	
+
 	// ASC/DESC not implemented?
 	"order:score" : "sort:score",
 	"order:score_desc" : "sort:score",
@@ -130,6 +131,15 @@ SITE_QUERY_TERM_ASSOCIATIONS[SITE_RULE34] = {
 	"order:score_desc" : "sort:score_desc",
 	"sort:-upload" : ""
 };
+SITE_QUERY_TERM_ASSOCIATIONS[SITE_PAHEAL] = {
+	"sort:id" : "order:id",
+	"sort:id_asc" : "order:id_asc",
+	"sort:id_desc" : "order:id_desc",
+	"sort:score" : "order:score",
+	"sort:score_asc" : "order:score_asc",
+	"sort:score_desc" : "order:score_desc",
+	"sort:-upload" : ""
+};
 SITE_QUERY_TERM_ASSOCIATIONS[SITE_SAFEBOORU] = {
 	"rating:s\\S*" : "rating:safe",
 	"rating:q\\S*" : "rating:questionable",
@@ -147,7 +157,7 @@ SITE_QUERY_TERM_ASSOCIATIONS[SITE_XBOORU] = {
 	"rating:q\\S*" : "rating:questionable",
 	"rating:e\\S*" : "rating:explicit",
 	// Can't sort by ID
-	
+
 	// ASC/DESC not implemented?
 	"order:score" : "sort:score",
 	"order:score_desc" : "sort:score",
