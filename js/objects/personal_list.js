@@ -11,7 +11,7 @@ class PersonalList
         if(personalListItems.length >= 1){
             let li = personalListItems[0]
             let slide = new Slide(li.siteId, li.id, li.fileUrl, li.previewFileUrl, li.viewableWebsitePostUrl, li.width, li.height, li.date, li.score, li.mediaType, li.md5, li.tags)
-            
+
             slide.addCallback(function () {
                 let callbackSlide = this
                 _this.model.view.removeThumbnailGreyness(callbackSlide.id)
@@ -20,8 +20,8 @@ class PersonalList
             slide.preload()
             if(this.model.loadedSlides) this.model.loadedSlides.push(slide)
         }
-        if(personalListItems.length > 0){ 
-            if(this.allTagged()){ 
+        if(personalListItems.length > 0){
+            if(this.allTagged()){
                 this.indexed = true
                 return
             }
@@ -52,13 +52,13 @@ class PersonalList
         var getInterval = setInterval(async () => {
             // console.log(_this.indexed)
             if(!i) i = window.index
-            if(items[i] && items[i].tags && typeof items[i].tags == "string"){ 
+            if(items[i] && items[i].tags && typeof items[i].tags == "string"){
                 i++
                 console.log("return")
                 _this.dataLoader.savePersonalList(items)
                 return
             }
-            if(i >= items.length){ 
+            if(i >= items.length){
                 clearInterval(getInterval)
                 // console.log("Cleared")
                 // console.log(items)
@@ -75,6 +75,8 @@ class PersonalList
                 items[i].tags = await _this.getImageTagsE621(items[i].id, webRequester)
             }else if(items[i].siteId == SITE_RULE34){
                 items[i].tags = await _this.getImageTagsRule34(items[i].id, webRequester)
+            }else if(items[i].siteId == SITE_PAHEAL){
+                items[i].tags = await _this.getImageTagsPaheal(items[i].id, webRequester)
             }else if(items[i].siteId == SITE_ATFBOORU){
                 items[i].tags = await _this.getImageTagsATF(items[i].id, webRequester)
             }else if(items[i].siteId == SITE_DANBOORU){
@@ -112,7 +114,7 @@ class PersonalList
         return new Promise((resolve) => {
             webRequester.makeWebsiteRequest(`https://e621.net/posts.json?tags=id%3A${id}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText).posts[0]
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -126,7 +128,7 @@ class PersonalList
         return new Promise((resolve) => {
             webRequester.makeWebsiteRequest(`https://booru.allthefallen.moe/posts.json?tags=id%3A${id}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText)[0]
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -139,7 +141,7 @@ class PersonalList
         return new Promise((resolve) => {
             webRequester.makeWebsiteRequest(`https://yande.re/post.json?tags=id%3A${id}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText)[0]
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -147,13 +149,13 @@ class PersonalList
             })
         })
     }
-    
+
 
     getImageTagsKona(id, webRequester){
         return new Promise((resolve) => {
             webRequester.makeWebsiteRequest(`https://konachan.com/post.json?tags=id%3A${id}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText)[0]
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -167,7 +169,7 @@ class PersonalList
             webRequester.makeWebsiteRequest(`https://realbooru.com/index.php?page=dapi&s=post&q=index&tags=id%3A${id}`, () => {
                 var parser = new DOMParser()
                 var data = parser.parseFromString(arguments[1].xhr.responseText, "text/xml")
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -181,7 +183,7 @@ class PersonalList
             webRequester.makeWebsiteRequest(`https://xbooru.com/index.php?page=dapi&s=post&q=index&tags=id%3A${id}`, () => {
                 var parser = new DOMParser()
                 var data = parser.parseFromString(arguments[1].xhr.responseText, "text/xml")
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -195,7 +197,7 @@ class PersonalList
             webRequester.makeWebsiteRequest(`https://safebooru.org/index.php?page=dapi&s=post&q=index&tags=id%3A${id}`, () => {
                 var parser = new DOMParser()
                 var data = parser.parseFromString(arguments[1].xhr.responseText, "text/xml")
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -208,15 +210,15 @@ class PersonalList
         return new Promise((resolve) => {
             var possibleAddedKey
             chrome.storage.sync.get(["derpibooruApiKey"], (obj) => {possibleAddedKey = obj.derpibooruApiKey ? '&key=' + obj.derpibooruApiKey : ''})
-            
+
             webRequester.makeWebsiteRequest(`https://derpibooru.org/search.json?q=id%3A${id}${possibleAddedKey}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText).search[0]
                 var tags = data.tags
 				tags = tags.replace(/,\s/gm,",")
 				tags = tags.replace(/\s/gm,"_")
                 tags = tags.replace(/,/gm," ")
-                
-                if(!data){ 
+
+                if(!data){
                     resolve("")
                     return
                 }
@@ -229,7 +231,7 @@ class PersonalList
         return new Promise((resolve) => {
             webRequester.makeWebsiteRequest(`https://danbooru.donmai.us/posts.json?tags=id%3A${id}`, () => {
                 var data = JSON.parse(arguments[1].xhr.responseText)[0]
-                if(!data){ 
+                if(!data){
                     resolve("")
                     return
                 }
@@ -244,7 +246,22 @@ class PersonalList
                 // console.log(arguments)
                 var parser = new DOMParser()
                 var data = parser.parseFromString(arguments[1].xhr.responseText, "text/xml")
-                if(!data){ 
+                if(!data){
+                    resolve("")
+                    return
+                }
+                resolve(data.getElementsByTagName("post")[0].getAttribute("tags"))
+            })
+        })
+    }
+
+    getImageTagsPaheal(id, webRequester){
+        return new Promise((resolve) => {
+            webRequester.makeWebsiteRequest(`http://rule34.paheal.net//api/danbooru/find_posts?tags=id%3A${id}`, () => {
+                // console.log(arguments)
+                var parser = new DOMParser()
+                var data = parser.parseFromString(arguments[1].xhr.responseText, "text/html")
+                if(!data){
                     resolve("")
                     return
                 }
