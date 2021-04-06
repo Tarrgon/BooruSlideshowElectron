@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager ./ booruslideshowelectron --all --icon=./img/bs_icon_19.ico"
+    "build": "electron-packager ./ booruslideshowelectron --all --icon=./img/bs_icon_19.ico --overwrite"
   },
   "author": "",
   "license": "ISC",
