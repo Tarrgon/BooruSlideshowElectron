@@ -1,5 +1,8 @@
 Changelog
 
+Version 10.0
+* [Feature] Added support for rule34.paheal (https://github.com/DontTalkToMeThx/BooruSlideshowElectron/pull/2)
+
 Version 9.1
 * [Fix] ATF booru domain change
 

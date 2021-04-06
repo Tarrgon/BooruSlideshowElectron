@@ -1,6 +1,6 @@
 {
   "name": "booruslideshowelectron",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "An app for viewing images from multiple sites",
   "main": "main.js",
   "scripts": {
