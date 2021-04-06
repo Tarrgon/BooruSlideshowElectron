@@ -5,7 +5,7 @@
 		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="css/slideshow.css">
 	</head>
-	
+
 	<body>
 
 		<p id="warning-message"></p>
@@ -61,6 +61,7 @@
 						<li><label><input type="checkbox" name="sites-to-search" value="KONA" />konachan.com</label></li>
 						<li><label><input type="checkbox" name="sites-to-search" value="REAL" />realbooru.com</label></li>
 						<li><label><input type="checkbox" name="sites-to-search" value="RULE" />rule34.xxx</label></li>
+						<li><label><input type="checkbox" name="sites-to-search" value="PAHE" />rule34.paheal.net</label></li>
 						<li><label><input type="checkbox" name="sites-to-search" value="SAFE" />safebooru.org</label></li>
 						<li><label><input type="checkbox" name="sites-to-search" value="XBOO" />xbooru.com</label></li>
 						<li><label><input type="checkbox" name="sites-to-search" value="YAND" />yande.re</label></li>
@@ -94,10 +95,10 @@
 						<li>
 							<label><input id="favorite-remotely" type="checkbox" />Favorite Remotely</label>
 						</li>
-						
+
 					</ul>
 				</div>
-				
+
 				<div class="options">
 					<h4>Filtering</h4>
 					<ul>
@@ -130,7 +131,7 @@
 							(Searching for only GIFs or WEBMs may take forever since it is still going through all image results. Consider adding "animated" to the search query.)
 						</li>
 					</ul>
-					
+
 					<h4>Blacklist <label class="note"><input id="hide-blacklist" type="checkbox" />(hide)</span></h4>
 					<ul id="blacklist-container">
 						<li>
@@ -172,7 +173,7 @@
 				</div>
             </div>
         </div>
-		
+
 		<script src="js/globals.js"></script>
 		<script src="js/objects/web_requester.js"></script>
 		<script src="js/objects/site_manager.js"></script>
@@ -185,6 +186,7 @@
 		<script src="js/objects/site_managers/site_manager_konachan.js"></script>
 		<script src="js/objects/site_managers/site_manager_realbooru.js"></script>
 		<script src="js/objects/site_managers/site_manager_rule34.js"></script>
+		<script src="js/objects/site_managers/site_manager_paheal.js"></script>
 		<script src="js/objects/site_managers/site_manager_safebooru.js"></script>
 		<script src="js/objects/site_managers/site_manager_xbooru.js"></script>
 		<script src="js/objects/site_managers/site_manager_yandere.js"></script>
@@ -201,4 +203,3 @@
 		<script src="js/slideshow_initialize.js"></script>
 	</body>
 </html>
-

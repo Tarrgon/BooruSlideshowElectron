@@ -22,6 +22,8 @@ class SiteManagerFactory
 				return new SiteManagerRealbooru(sitesManager, pageLimit);
 			case SITE_RULE34:
 				return new SiteManagerRule34(sitesManager, pageLimit);
+      case SITE_PAHEAL:
+				return new SiteManagerPaheal(sitesManager, pageLimit);
 			case SITE_SAFEBOORU:
 				return new SiteManagerSafebooru(sitesManager, pageLimit);
 			case SITE_XBOORU:
