@@ -1,5 +1,8 @@
 Changelog
 
+Version 9.1
+* [Fix] ATF booru domain change
+
 Version 9.0
 * [Feature] Favorite remotely feature added (currently only works with e621, if you want me to see if other sites are possible, open an issue)
 
