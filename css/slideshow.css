@@ -320,7 +320,9 @@ textarea {
 textarea,
 #derpibooru-api-key,
 #e621-api-key,
-#e621-login {
+#e621-login,
+#danbooru-api-key,
+#danbooru-login {
 	background: #181a1f;
 	color: #999;
 }

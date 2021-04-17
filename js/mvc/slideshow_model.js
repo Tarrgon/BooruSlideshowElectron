@@ -39,6 +39,8 @@ class SlideshowModel {
         this.derpibooruApiKey = '';
         this.e621Login = ''
         this.e621ApiKey = ''
+        this.danbooruLogin = ''
+        this.danbooruApiKey = ''
         this.storeHistory = true;
         this.searchHistory = [];
         this.groupedTags = []
@@ -71,6 +73,8 @@ class SlideshowModel {
         this.derpibooruApiKeyUpdatedEvent = new Event(this);
         this.e621LoginUpdatedEvent = new Event(this);
         this.e621ApiKeyUpdatedEvent = new Event(this);
+        this.danbooruLoginUpdatedEvent = new Event(this);
+        this.danbooruApiKeyUpdatedEvent = new Event(this);
         this.storeHistoryUpdatedEvent = new Event(this);
         this.searchHistoryUpdatedEvent = new Event(this);
         this.favoriteButtonUpdatedEvent = new Event(this);
@@ -568,6 +572,22 @@ class SlideshowModel {
         this.dataLoader.saveE621Login();
 
         this.e621LoginUpdatedEvent.notify();
+    }
+
+    setDanbooruApiKey(danbooruApiKey) {
+        this.danbooruApiKey = danbooruApiKey;
+
+        this.dataLoader.saveDanbooruApiKey();
+
+        this.danbooruApiKeyUpdatedEvent.notify();
+    }
+
+    setDanbooruLogin(danbooruLogin) {
+        this.danbooruLogin = danbooruLogin;
+
+        this.dataLoader.saveDanbooruLogin();
+
+        this.danbooruLoginUpdatedEvent.notify();
     }
 
     setStoreHistory(onOrOff) {
