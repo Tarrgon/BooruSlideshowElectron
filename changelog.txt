@@ -1,5 +1,11 @@
 Changelog
 
+Version 10.1
+* [Feature] The 1 and 2 keys will now jump backwards and forwards 5 seconds if the current slide is a video.
+* [Feature] Added a starting page box that defines the page to start searching from
+* [Feature] While in slideshow mode in your personal list, images/videos that don't load will be automatically skipped (typically means they're deleted from the site, but we won't auto remove them from your favorites, though this doesn't always skip if the image/video is just having a long time to load)
+* [Removed] Removed unneeded logs
+
 Version 10.0
 * [Feature] Added support for rule34.paheal (https://github.com/DontTalkToMeThx/BooruSlideshowElectron/pull/2)
 
