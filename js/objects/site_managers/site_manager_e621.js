@@ -10,7 +10,7 @@ class SiteManagerE621 extends SiteManager {
 	buildRequestUrl(searchText, pageNumber) {
 		var query = this.buildSiteSpecificQuery(searchText);
 		let possibleLogin = this.sitesManager.model.e621ApiKey && this.sitesManager.model.e621Login ? '&login=' + this.sitesManager.model.e621Login + '&api_key=' + this.sitesManager.model.e621ApiKey : '';
-		return this.url + '/posts.json?tags=' + query + '&page=' + pageNumber + '&limit=' + this.pageLimit + possibleLogin;
+		return this.url + '/posts.json?tags=' + query +  '&page=' + pageNumber + '&limit=' + this.pageLimit + possibleLogin;
 	}
 
 	doesResponseTextIndicateOnline(responseText) {
@@ -76,7 +76,7 @@ class SiteManagerE621 extends SiteManager {
 		jsonPost.width = jsonPost.file.width
 		jsonPost.height = jsonPost.file.height
 		jsonPost.preview_url = jsonPost.preview.url
-		jsonPost.tags = this.condenseTags(jsonPost)
+		jsonPost.newTags = this.condenseTags(jsonPost)
 		// console.log(jsonPost.tags)
 
 		if (!this.isPathForSupportedMediaType(jsonPost.file_url))
@@ -85,7 +85,7 @@ class SiteManagerE621 extends SiteManager {
 		if (!this.isRatingAllowed(jsonPost.rating))
 			return
 
-		if (this.areSomeTagsAreBlacklisted(jsonPost.tags))
+		if (this.areSomeTagsAreBlacklisted(jsonPost.newTags))
 			return;
 
 		var url = this.url + '/posts/' + jsonPost.id;
@@ -114,6 +114,7 @@ class SiteManagerE621 extends SiteManager {
 			jsonPost.score,
 			this.getMediaTypeFromPath(jsonPost.file_url),
 			jsonPost.md5,
+			jsonPost.newTags,
 			jsonPost.tags
 		);
 		// console.log(newSlide)

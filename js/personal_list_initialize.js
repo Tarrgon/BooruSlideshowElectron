@@ -1,7 +1,7 @@
-//var personalListController = null;
+let personalListController = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-    new PersonalListController({
+    personalListController = new PersonalListController({
         'warningMessage': document.getElementById('warning-message'),
         'infoMessage': document.getElementById('info-message'),
         'currentImage': document.getElementById('current-image'),

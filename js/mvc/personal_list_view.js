@@ -1,6 +1,5 @@
-class PersonalListView
-{
-    constructor (personalListModel, uiElements) {
+class PersonalListView {
+    constructor(personalListModel, uiElements) {
         this._model = personalListModel;
         this.uiElements = uiElements;
 
@@ -9,11 +8,11 @@ class PersonalListView
         const app = electron.remote.app
         this.downloadManager = require("electron-download-manager")
         this.shell = electron.shell
- 
+
         this.downloadManager.register({
             downloadFolder: app.getPath("downloads") + "/bs"
         })
-        
+
         this.currentImageClickedEvent = new Event(this);
         this.currentVideoClickedEvent = new Event(this);
         this.currentVideoVolumeChangedEvent = new Event(this);
@@ -36,23 +35,24 @@ class PersonalListView
         this.removeCurrentImageFromFavesPressedEvent = new Event(this);
         this.reverseOrderClickEvent = new Event(this)
         this.randomizeOrderClickEvent = new Event(this)
+        this.forwardVideoEvent = new Event(this)
+        this.backwardVideoEvent = new Event(this)
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
-    
+
         var _this = this;
-        
+
         this.attachModelListeners();
-        
+
         this.attachUiElementListeners();
-    
+
         this.setupLoadingAnimation();
 
         //this.setFocusToFilterBox();
     }
 
-    attachModelListeners()
-    {
+    attachModelListeners() {
         var _this = this;
 
         // Attach model listeners
@@ -60,27 +60,27 @@ class PersonalListView
             _this.updateVideoVolume();
             _this.updateVideoMuted();
         });
-        
-        this._model.currentSlideChangedEvent.attach(function () {
+
+        this._model.currentSlideChangedEvent.attach(async function () {
             _this.updateSlidesAndNavigation();
         });
-    
+
         this._model.playingChangedEvent.attach(function () {
             _this.updatePlayPauseButtons();
         });
-    
+
         this._model.secondsPerSlideUpdatedEvent.attach(function () {
             _this.updateSecondsPerSlide();
         });
-    
+
         this._model.maxWidthUpdatedEvent.attach(function () {
             _this.updateMaxWidth();
         });
-    
+
         this._model.maxHeightUpdatedEvent.attach(function () {
             _this.updateMaxHeight();
         });
-    
+
         this._model.autoFitSlideUpdatedEvent.attach(function () {
             _this.updateAutoFitSlide();
         });
@@ -92,58 +92,56 @@ class PersonalListView
         });
     }
 
-    attachUiElementListeners()
-    {
+    attachUiElementListeners() {
         var _this = this;
 
         window.addEventListener('resize', function () {
             _this.windowResized();
         });
-    
-        this.uiElements.currentImage.addEventListener('click', function() {
+
+        this.uiElements.currentImage.addEventListener('click', function () {
             _this.currentImageClickedEvent.notify();
         });
-        
-        this.uiElements.currentVideo.addEventListener('click', function() {
+
+        this.uiElements.currentVideo.addEventListener('click', function () {
             _this.currentVideoClickedEvent.notify();
         });
-        
-        this.uiElements.currentVideo.addEventListener('volumechange', function() {
-            if (_this.isSettingVolume)
-            {
+
+        this.uiElements.currentVideo.addEventListener('volumechange', function () {
+            if (_this.isSettingVolume) {
                 return;
             }
-            
+
             _this.currentVideoVolumeChangedEvent.notify();
         });
-        
-        this.uiElements.firstNavButton.addEventListener('click', function() {
+
+        this.uiElements.firstNavButton.addEventListener('click', function () {
             _this.firstNavButtonClickedEvent.notify();
         });
-    
-        this.uiElements.previousNavButton.addEventListener('click', function() {
+
+        this.uiElements.previousNavButton.addEventListener('click', function () {
             _this.previousNavButtonClickedEvent.notify();
         });
-    
-        this.uiElements.nextNavButton.addEventListener('click', function() {
+
+        this.uiElements.nextNavButton.addEventListener('click', function () {
             _this.nextNavButtonClickedEvent.notify();
         });
-    
-        this.uiElements.lastNavButton.addEventListener('click', function() {
+
+        this.uiElements.lastNavButton.addEventListener('click', function () {
             _this.lastNavButtonClickedEvent.notify();
         });
-    
-        this.uiElements.playButton.addEventListener('click', function() {
+
+        this.uiElements.playButton.addEventListener('click', function () {
             _this.playButtonClickedEvent.notify();
         });
-    
-        this.uiElements.pauseButton.addEventListener('click', function() {
+
+        this.uiElements.pauseButton.addEventListener('click', function () {
             _this.pauseButtonClickedEvent.notify();
         });
-    
+
         document.addEventListener('keydown', function (e) {
             var key = e.which || e.keyCode;
-            
+            console.log(key)
             if (!(
                 key == ENTER_KEY_ID ||
                 key == SPACE_KEY_ID ||
@@ -156,18 +154,19 @@ class PersonalListView
                 key == F_KEY_ID ||
                 key == L_KEY_ID ||
                 key == G_KEY_ID ||
-                key == E_KEY_ID))
-            {
+                key == E_KEY_ID ||
+                key == ONE_KEY_ID ||
+                key == TWO_KEY_ID)) {
                 return;
             }
-    
+
             if (document.activeElement !== _this.uiElements.filterTextBox &&
                 document.activeElement !== _this.uiElements.secondsPerSlideTextBox &&
                 document.activeElement !== _this.uiElements.maxWidthTextBox &&
                 document.activeElement !== _this.uiElements.maxHeightTextBox &&
                 document.activeElement !== _this.uiElements.blacklist &&
                 document.activeElement !== _this.uiElements.derpibooruApiKey) {
-                
+
                 if (key == LEFT_ARROW_KEY_ID || key == A_KEY_ID)
                     _this.previousNavButtonClickedEvent.notify();
                 if (key == RIGHT_ARROW_KEY_ID || key == D_KEY_ID)
@@ -176,77 +175,78 @@ class PersonalListView
                     _this.goBackTenImagesPressedEvent.notify();
                 if (key == S_KEY_ID)
                     _this.goForwardTenImagesPressedEvent.notify();
-                if (key == ENTER_KEY_ID || key == SPACE_KEY_ID)
-                {
+                if (key == ENTER_KEY_ID || key == SPACE_KEY_ID) {
                     if (document.activeElement !== _this.uiElements.filterButton)
                         _this.enterKeyPressedOutsideOfFilterTextBoxEvent.notify();
                 }
-                if (key == SPACE_KEY_ID)
-                {
+                if (key == SPACE_KEY_ID) {
                     e.preventDefault();
                 }
-                if (key == F_KEY_ID)
-                {
+                if (key == F_KEY_ID) {
                     _this._model.setAutoFitSlide(!_this._model.autoFitSlide);
                 }
-                if (key == L_KEY_ID)
-                {
+                if (key == L_KEY_ID) {
                     _this.downloadCurrentSlide();
                 }
-                if (key == G_KEY_ID)
-                {
+                if (key == G_KEY_ID) {
                     _this.removeCurrentImageFromFavesPressedEvent.notify();
                 }
-                if(key == E_KEY_ID){
+                if (key == E_KEY_ID) {
                     _this.openCurrentSlide();
+                }
+                if (key == ONE_KEY_ID) {
+                    _this.backwardVideoEvent.notify()
+                }
+                if (key == TWO_KEY_ID) {
+                    _this.forwardVideoEvent.notify()
                 }
             }
         });
-    
+
         this.uiElements.filterTextBox.addEventListener('change', function () {
             _this.filterTextChangedEvent.notify();
         });
 
-        this.uiElements.reverseOrderButton.addEventListener('click', function(){
+        this.uiElements.reverseOrderButton.addEventListener('click', function () {
             _this.reverseOrderClickEvent.notify()
         })
 
-        this.uiElements.randomizeOrderButton.addEventListener('click', function(){
+        this.uiElements.randomizeOrderButton.addEventListener('click', function () {
             _this.randomizeOrderClickEvent.notify()
         })
-    
+
         this.uiElements.filterTextBox.addEventListener('keypress', function (e) {
             var key = e.which || e.keyCode;
-    
+
             if (key == ENTER_KEY_ID) {
                 _this.enterKeyPressedInFilterTextBoxEvent.notify();
             }
         });
-    
+
         this.uiElements.filterButton.addEventListener('click', function () {
             _this.filterButtonClickedEvent.notify();
         });
-    
+
         this.uiElements.secondsPerSlideTextBox.addEventListener('change', function () {
             _this.secondsPerSlideChangedEvent.notify();
         });
-    
+
         this.uiElements.maxWidthTextBox.addEventListener('change', function () {
             _this.maxWidthChangedEvent.notify();
         });
-    
-        this.uiElements.maxHeightTextBox.addEventListener('change', function() {
+
+        this.uiElements.maxHeightTextBox.addEventListener('change', function () {
             _this.maxHeightChangedEvent.notify();
         });
-    
+
         this.uiElements.autoFitSlideCheckBox.addEventListener('change', function () {
             _this.autoFitSlideChangedEvent.notify();
         });
     }
 
-    openCurrentSlide(){
+    openCurrentSlide() {
         let currentSlide = this._model.getCurrentSlide();
-        if(currentSlide == null) return
+        if (currentSlide == null) return
         this.shell.openExternal(currentSlide.viewableWebsitePostUrl)
     }
 
@@ -260,16 +260,15 @@ class PersonalListView
     }
 
     windowResized() {
-        if (this._model.autoFitSlide)
-        {
+        if (this._model.autoFitSlide) {
             this.tryToUpdateSlideSize();
         }
     }
-	
-	isDisplayingWarningMessage() {
-		return this.uiElements.warningMessage.style.display == 'block';
-	}
-	
+
+    isDisplayingWarningMessage() {
+        return this.uiElements.warningMessage.style.display == 'block';
+    }
+
     displayWarningMessage(message) {
         this.uiElements.warningMessage.innerHTML = message;
         this.uiElements.warningMessage.style.display = 'block';
@@ -279,8 +278,8 @@ class PersonalListView
         this.uiElements.warningMessage.innerHTML = '';
         this.uiElements.warningMessage.style.display = 'none';
     }
-	
-	displayInfoMessage(message) {
+
+    displayInfoMessage(message) {
         this.uiElements.infoMessage.innerHTML = message;
         this.uiElements.infoMessage.style.display = 'block';
     }
@@ -308,34 +307,31 @@ class PersonalListView
         this.uiElements.currentImage.onload = function () {
             _this.hideLoadingAnimation();
         }
-		
-		this.uiElements.currentVideo.addEventListener('loadeddata', function() {
-			_this.hideLoadingAnimation();
-		}, false);
+
+        this.uiElements.currentVideo.addEventListener('loadeddata', function () {
+            _this.hideLoadingAnimation();
+        }, false);
     }
 
     displayCurrentSlide() {
-        if (this._model.hasPersonalListItems())
-		{
+        if (this._model.hasPersonalListItems()) {
             this.displaySlide();
         }
-		else if (this.isDisplayingWarningMessage())
-		{
-			// Current warning message more important
-		}
-        else
-		{
-			var message = '';
-		
-			var includingImagesOrGifs = (this._model.includeImages || this._model.includeGifs);
-			
-			if (includingImagesOrGifs && this._model.includeWebms)
-				message = 'No images or videos were found.';
-			else if (includingImagesOrGifs && !this._model.includeWebms)
-				message = 'No images were found.';
-			else if (!includingImagesOrGifs && this._model.includeWebms)
-				message = 'No videos were found.';
-			
+        else if (this.isDisplayingWarningMessage()) {
+            // Current warning message more important
+        }
+        else {
+            var message = '';
+
+            var includingImagesOrGifs = (this._model.includeImages || this._model.includeGifs);
+
+            if (includingImagesOrGifs && this._model.includeWebms)
+                message = 'No images or videos were found.';
+            else if (includingImagesOrGifs && !this._model.includeWebms)
+                message = 'No images were found.';
+            else if (!includingImagesOrGifs && this._model.includeWebms)
+                message = 'No videos were found.';
+
             this.displayWarningMessage(message);
         }
     }
@@ -344,79 +340,74 @@ class PersonalListView
         this.showLoadingAnimation();
 
         var currentSlide = this._model.getCurrentSlide();
-		
-		if (currentSlide.isImageOrGif())
-		{
-			this.displayImage(currentSlide);
-		}
-		else if (currentSlide.isVideo())
-		{
-			this.displayVideo(currentSlide);
-		}
-		else
-		{
-			console.log("Trying to display slide that isn't an image or video.")
-		}
+
+        if (currentSlide.isImageOrGif()) {
+            this.displayImage(currentSlide);
+        }
+        else if (currentSlide.isVideo()) {
+            this.displayVideo(currentSlide);
+        }
+        else {
+            console.log("Trying to display slide that isn't an image or video.")
+        }
     }
-	
-	displayImage(currentSlide) {
+
+    displayImage(currentSlide) {
         var currentImage = this.uiElements.currentImage;
 
         currentImage.src = currentSlide.fileUrl;
         currentImage.setAttribute('alt', currentSlide.id);
         currentImage.style.display = 'inline';
-		
-		this.clearVideo();
+
+        this.clearVideo();
         this.updateSlideSize();
     }
-	
-	displayVideo(currentSlide) {
+
+    displayVideo(currentSlide) {
         var currentVideo = this.uiElements.currentVideo;
 
         currentVideo.src = currentSlide.fileUrl;
         currentVideo.style.display = 'inline';
 
-		this.clearImage();
+        this.clearImage();
         this.updateSlideSize();
-		this.updateVideoVolume();
-		this.updateVideoMuted();
+        this.updateVideoVolume();
+        this.updateVideoMuted();
     }
-	
-	getVideoVolume() {
-		return this.uiElements.currentVideo.volume;
+
+    getVideoVolume() {
+        return this.uiElements.currentVideo.volume;
     }
-	
-	getVideoMuted() {
+
+    getVideoMuted() {
         return this.uiElements.currentVideo.muted;
     }
 
     tryToUpdateSlideSize() {
-        if (this._model.hasPersonalListItems())
-        {
-			this.updateSlideSize();
-		}
+        if (this._model.hasPersonalListItems()) {
+            this.updateSlideSize();
+        }
     }
-	
+
     updateSlideSize() {
         var currentSlide = this._model.getCurrentSlide();
 
         var currentImage = this.uiElements.currentImage;
         var currentVideo = this.uiElements.currentVideo;
-        
+
         var autoFitSlide = this._model.autoFitSlide;
 
         currentImage.style.width = null;
         currentImage.style.height = null;
         currentImage.style.maxWidth = null;
         currentImage.style.maxHeight = null;
-		
-		currentVideo.style.width = null;
+
+        currentVideo.style.width = null;
         currentVideo.style.height = null;
         currentVideo.style.maxWidth = null;
         currentVideo.style.maxHeight = null;
-        
-        if (autoFitSlide)
-        {
+
+        if (autoFitSlide) {
             var viewWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
             var viewHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
@@ -425,69 +416,55 @@ class PersonalListView
 
             var viewRatio = viewWidth / viewHeight;
             var newRatio = newWidth / newHeight;
-            
-            if (newRatio > viewRatio)
-            {
+
+            if (newRatio > viewRatio) {
                 newWidth = viewWidth;
                 newHeight = viewWidth / newRatio;
             }
-            else
-            {
+            else {
                 newWidth = viewHeight * newRatio;
                 newHeight = viewHeight;
             }
-            
-			if (currentSlide.isImageOrGif())
-			{
-				currentImage.style.width = newWidth + 'px';
-				currentImage.style.height = newHeight + 'px';
-			}
-			else if (currentSlide.isVideo())
-			{
-				currentVideo.style.width = newWidth + 'px';
-				currentVideo.style.height = newHeight + 'px';
-			}
-			else
-			{
-				console.log("Couldn't update slide size because slide isn't image or video.");
-			}
+
+            if (currentSlide.isImageOrGif()) {
+                currentImage.style.width = newWidth + 'px';
+                currentImage.style.height = newHeight + 'px';
+            }
+            else if (currentSlide.isVideo()) {
+                currentVideo.style.width = newWidth + 'px';
+                currentVideo.style.height = newHeight + 'px';
+            }
+            else {
+                console.log("Couldn't update slide size because slide isn't image or video.");
+            }
         }
-        else
-        {
-            if (this._model.maxWidth != null)
-			{
+        else {
+            if (this._model.maxWidth != null) {
                 var maxWidth = parseInt(this._model.maxWidth);
-                
-				if (currentSlide.isImageOrGif())
-				{
-					currentImage.style.maxWidth = maxWidth + 'px';
-				}
-				else if (currentSlide.isVideo())
-				{
-					currentVideo.style.maxWidth = maxWidth + 'px';
-				}
-				else
-				{
-					console.log("Couldn't update slide max width because slide isn't image or video.");
-				}
-			}
-			
-            if (this._model.maxHeight != null)
-			{
+
+                if (currentSlide.isImageOrGif()) {
+                    currentImage.style.maxWidth = maxWidth + 'px';
+                }
+                else if (currentSlide.isVideo()) {
+                    currentVideo.style.maxWidth = maxWidth + 'px';
+                }
+                else {
+                    console.log("Couldn't update slide max width because slide isn't image or video.");
+                }
+            }
+
+            if (this._model.maxHeight != null) {
                 var maxHeight = parseInt(this._model.maxHeight);
-                
-				if (currentSlide.isImageOrGif())
-				{
-					currentImage.style.maxHeight = maxHeight + 'px';
-				}
-				else if (currentSlide.isVideo())
-				{
-					currentVideo.style.maxHeight = maxHeight + 'px';
-				}
-				else
-				{
-					console.log("Couldn't update slide max height because slide isn't image or video.");
-				}
+
+                if (currentSlide.isImageOrGif()) {
+                    currentImage.style.maxHeight = maxHeight + 'px';
+                }
+                else if (currentSlide.isVideo()) {
+                    currentVideo.style.maxHeight = maxHeight + 'px';
+                }
+                else {
+                    console.log("Couldn't update slide max height because slide isn't image or video.");
+                }
             }
         }
     }
@@ -499,24 +476,24 @@ class PersonalListView
         currentImage.removeAttribute('alt');
         currentImage.style.display = 'none';
     }
-	
-	clearVideo() {
+
+    clearVideo() {
         var currentVideo = this.uiElements.currentVideo;
 
         currentVideo.src = '';
         currentVideo.style.display = 'none';
     }
-	
-	updateVideoVolume() {
-		this.isSettingVolume = true;
+
+    updateVideoVolume() {
+        this.isSettingVolume = true;
         this.uiElements.currentVideo.volume = this._model.videoVolume;
-		this.isSettingVolume = false;
+        this.isSettingVolume = false;
     }
-	
-	updateVideoMuted() {
-		this.isSettingMute = true;
+
+    updateVideoMuted() {
+        this.isSettingMute = true;
         this.uiElements.currentVideo.muted = this._model.videoMuted;
-		this.isSettingMute = false;
+        this.isSettingMute = false;
     }
 
     showLoadingAnimation() {
@@ -532,13 +509,11 @@ class PersonalListView
     }
 
     updateNavigation() {
-        if (this._model.hasPersonalListItems())
-        {
+        if (this._model.hasPersonalListItems()) {
             this.updateNavigationButtonsAndDisplay();
             this.showNavigation();
         }
-        else
-        {
+        else {
             this.hideNavigation();
             this.displayInfoMessage("No images have been faved yet.");
         }
@@ -632,6 +607,10 @@ class PersonalListView
         var newThumbnailImage = document.createElement("img");
         newThumbnailImage.id = 'thumbnail-image-' + id;
         newThumbnailImage.classList.add("thumbnail-image");
+        newThumbnailImage.addEventListener("error", () => {
+            let slide = this._model.loadedSlides.find(t => t.id == id)
+            if (slide) slide.bad = true
+        })
         newThumbnailImage.src = thumbnailImageUrl;
 
         if (showGreyedOut) {
@@ -670,8 +649,8 @@ class PersonalListView
     setFocusToFilterBox() {
         this.uiElements.filterTextBox.focus();
     }
-	
-	removeFocusFromFilterTextBox() {
+
+    removeFocusFromFilterTextBox() {
         this.uiElements.filterTextBox.blur();
     }
 
@@ -707,11 +686,10 @@ class PersonalListView
     updateMaxWidth() {
         var maxWidth = this._model.maxWidth;
 
-        if (maxWidth == null)
-        {
+        if (maxWidth == null) {
             maxWidth = "";
         }
-        
+
         this.uiElements.maxWidthTextBox.value = maxWidth;
         this.tryToUpdateSlideSize();
     }
@@ -747,15 +725,14 @@ class PersonalListView
         this.shell.openExternal(url)
     }
 
-    downloadCurrentSlide()
-    {
+    downloadCurrentSlide() {
         let currentSlide = this._model.getCurrentSlide();
 
         if (currentSlide == null)
             return;
-        
+
         let url = currentSlide.fileUrl;
-        
+
         this.downloadManager.download({
             url: url,
         }, function (error, info) {
@@ -763,7 +740,7 @@ class PersonalListView
                 console.log(error)
                 return;
             }
-     
+
             console.log("DONE: " + info.url)
         })
     }

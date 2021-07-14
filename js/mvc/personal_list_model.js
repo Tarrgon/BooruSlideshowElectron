@@ -142,6 +142,9 @@ class PersonalListModel{
             this.currentSlideChangedEvent.notify();
             this.restartSlideshowIfOn();
         }
+        if (this.getCurrentSlide().bad) {
+            this.decreaseCurrentSlideNumber()
+        }
     }
 
     increaseCurrentSlideNumber()
@@ -153,12 +156,17 @@ class PersonalListModel{
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
-        }else{
+        }
+        else
+        {
             if (this.currentListItem < this.filteredPersonalList.count()){
                 this.currentListItem++;
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
+        }
+        if (this.getCurrentSlide().bad) {
+            this.increaseCurrentSlideNumber()
         }
     }
 	
@@ -614,3 +622,4 @@ class PersonalListModel{
         this.favoriteRemotely = onOrOff;
     }
 }
+
