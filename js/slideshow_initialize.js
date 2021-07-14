@@ -1,7 +1,7 @@
-//let slideshowController = null;
+let slideshowController = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-    new SlideshowController({
+    slideshowController = new SlideshowController({
         'warningMessage': document.getElementById('warning-message'),
         'infoMessage': document.getElementById('info-message'),
         'currentImage': document.getElementById('current-image'),
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'slideWrapper': document.getElementById('slide-wrapper'),
         'includeDupesCheckBox': document.getElementById('include-dupes'),
         'includeFavoritesCheckBox': document.getElementById('include-faves'),
-        'favoriteRemotelyCheckBox': document.getElementById('favorite-remotely')
+        'favoriteRemotelyCheckBox': document.getElementById('favorite-remotely'),
+        'startPageNumber': document.getElementById('start-page-number')
     });
 });

@@ -1,40 +1,34 @@
-class SiteManager
-{
-    constructor(sitesManager, id, url, pageLimit)
-    {
-				this.webRequester = new WebRequester();
-				this.postRequest = new WebRequester("POST")
-				this.deleteRequest = new WebRequester("DELETE")
-        this.sitesManager = sitesManager;
-        this.id = id;
-        this.url = url;
-        this.pageLimit = pageLimit;
-        this.lastPageLoaded = 0;
-        this.isEnabled = false;
-        this.allUnsortedSlides = [];
-        this.hasExhaustedSearch = false;
-        this.ranIntoErrorWhileSearching = false;
-        this.isOnline = false;
+class SiteManager {
+	constructor(sitesManager, id, url, pageLimit) {
+		this.webRequester = new WebRequester();
+		this.postRequest = new WebRequester("POST")
+		this.deleteRequest = new WebRequester("DELETE")
+		this.sitesManager = sitesManager;
+		this.id = id;
+		this.url = url;
+		this.pageLimit = pageLimit;
+		this.lastPageLoaded = 0;
+		this.isEnabled = false;
+		this.allUnsortedSlides = [];
+		this.hasExhaustedSearch = false;
+		this.ranIntoErrorWhileSearching = false;
+		this.isOnline = false;
 
-        this.siteQueryTermAssociations = SITE_QUERY_TERM_ASSOCIATIONS[id];
-    }
+		this.siteQueryTermAssociations = SITE_QUERY_TERM_ASSOCIATIONS[id];
+	}
 
-    buildPingRequestUrl()
-	{
+	buildPingRequestUrl() {
 		console.log('buildPingRequestUrl() was not implemented.');
-    }
+	}
 
-    buildRequestUrl(searchText, pageNumber)
-	{
+	buildRequestUrl(searchText, pageNumber) {
 		console.log('buildRequestUrl() was not implemented.');
 	}
 
-    buildSiteSpecificQuery(searchText)
-	{
+	buildSiteSpecificQuery(searchText) {
 		var query = searchText.trim();
 
-		for (var queryTermToReplace in this.siteQueryTermAssociations)
-		{
+		for (var queryTermToReplace in this.siteQueryTermAssociations) {
 			var queryTermReplacement = this.siteQueryTermAssociations[queryTermToReplace];
 
 			var queryTermRegexp = new RegExp(queryTermToReplace, 'i');
@@ -45,8 +39,7 @@ class SiteManager
 		return query;
 	}
 
-	resetConnection()
-	{
+	resetConnection() {
 		this.webRequester.resetConnection();
 
 		this.lastPageLoaded = 0;
@@ -56,31 +49,28 @@ class SiteManager
 		this.ranIntoErrorWhileSearching = false;
 	}
 
-	enable()
-	{
+	enable() {
 		this.isEnabled = true;
 	}
 
-	pingStatus(callback)
-	{
+	pingStatus(callback) {
 		var url = this.buildPingRequestUrl();
 
-		if (url != null)
-		{
+		if (url != null) {
 			var _this = this;
 			this.webRequester.makeWebsiteRequest(
 				url,
-				function(responseText){
+				function (responseText) {
 					// console.log(responseText)
 					if (_this.doesResponseTextIndicateOnline(responseText))
 						_this.isOnline = true;
 				},
 				this.handleErrorFromSiteResponse.bind(_this),
-				function(){
+				function () {
 					// console.log(_this, "THOS")
 					callback(_this);
 				},
-				function(url, hideVisibleWarning = false){
+				function (url, hideVisibleWarning = false) {
 					_this.handleGeneralError(url, hideVisibleWarning);
 					// console.log(_this, "THIS")
 					callback(_this);
@@ -89,35 +79,44 @@ class SiteManager
 		}
 	}
 
-	doesResponseTextIndicateOnline(responseText)
-	{
+	doesResponseTextIndicateOnline(responseText) {
 		console.log('doesResponseTextIndicateOnline() was not implemented.');
 	}
 
-	performSearch(searchText, doneSearchingSiteCallback)
-	{
-		if (!this.isOnline)
-		{
+	performSearch(searchText, doneSearchingSiteCallback) {
+		if (!this.isOnline) {
 			console.log('Trying to perform search on site that has not been determined to be online.');
 			return;
 		}
 
+		if (this.id == SITE_E621) {
+			let regex = /\( (.*) \)/g
+			let results = regex.exec(searchText)
+			if (results) {
+				searchText = searchText.substring(0, results.index)
+				for (let search of results[1].split(" ~ ")) {
+					searchText += `~${search} `
+				}
+			}
+		}
+
 		this.ranIntoErrorWhileSearching = false;
+		this.lastPageLoaded = this.sitesManager.model.view.uiElements.startPageNumber.value != "" ? parseInt(this.sitesManager.model.view.uiElements.startPageNumber.value) : this.lastPageLoaded
+		this.sitesManager.model.view.uiElements.startPageNumber.value = ""
 		var pageNumber = this.lastPageLoaded + 1;
 		var url = this.buildRequestUrl(searchText, pageNumber);
 
 		var siteManager = this;
 
-		if (url != null)
-		{
+		if (url != null) {
 			this.webRequester.makeWebsiteRequest(
 				url,
-				function(responseText){
+				function (responseText) {
 					siteManager.lastPageLoaded++;
 					siteManager.addSlides(responseText);
 				},
 				this.handleErrorFromSiteResponse.bind(siteManager),
-				function(){
+				function () {
 					doneSearchingSiteCallback(siteManager);
 				},
 				this.handleGeneralError.bind(siteManager),
@@ -125,52 +124,44 @@ class SiteManager
 		}
 	}
 
-	handleErrorFromSiteResponse(responseText, statusCode, hideVisibleWarning = false)
-	{
+	handleErrorFromSiteResponse(responseText, statusCode, hideVisibleWarning = false) {
 		this.ranIntoErrorWhileSearching = true;
 
 		var warningMessage = 'Error when calling site ' + this.url;
 
 		var possibleJson = '';
 
-		try
-		{
+		try {
 			possibleJson = JSON.parse(responseText);
 		}
-		catch (e)
-		{
+		catch (e) {
 			console.log('status code = ' + statusCode);
 			console.log(responseText);
 			possibleJson = null;
 		}
 
-		if (possibleJson != null && possibleJson.message != null)
-		{
+		if (possibleJson != null && possibleJson.message != null) {
 			warningMessage += ': ' + possibleJson.message;
 		}
 
-		if (statusCode == 429)
-        {
+		if (statusCode == 429) {
 			warningMessage += ' Requests were made too quickly. (Likely from the initial site status check.) Please try again.';
-        }
+		}
 
-        if (!hideVisibleWarning)
-            this.sitesManager.displayWarningMessage(warningMessage);
+		if (!hideVisibleWarning)
+			this.sitesManager.displayWarningMessage(warningMessage);
 	}
 
-	handleGeneralError(url, hideVisibleWarning = false)
-	{
+	handleGeneralError(url, hideVisibleWarning = false) {
 		if (!hideVisibleWarning)
 			this.sitesManager.displayWarningMessage('Error making the request to ' + url);
 	}
 
-	addSlides(responseText)
-	{
+	addSlides(responseText) {
 		console.log('addSlides() was not implemented.');
 	}
 
-	addXmlSlides(xmlResponseText)
-	{
+	addXmlSlides(xmlResponseText) {
 		var parser = new DOMParser();
 		var xml = parser.parseFromString(xmlResponseText, "text/xml");
 
@@ -178,95 +169,81 @@ class SiteManager
 
 		this.hasExhaustedSearch = (xmlPosts.length < this.pageLimit);
 
-		for (var i = 0; i < xmlPosts.length; i++)
-		{
+		for (var i = 0; i < xmlPosts.length; i++) {
 			var xmlPost = xmlPosts[i];
 
 			this.addSlide(xmlPost);
 		}
 	}
 
-  // rule34.paheal.net returns us invalid xml, we need to treat it as 'tag soup'.
-  // This is actually probably a more robust way of doing this in general, but
-  // it's... bad.
-  addHtmlSlides(htmlResponseText)
-  {
-    var parser = new DOMParser();
+	// rule34.paheal.net returns us invalid xml, we need to treat it as 'tag soup'.
+	// This is actually probably a more robust way of doing this in general, but
+	// it's... bad.
+	addHtmlSlides(htmlResponseText) {
+		var parser = new DOMParser();
 		var html = parser.parseFromString(htmlResponseText, "text/html");
 
-    var htmlPosts = html.getElementsByTagName("tag");
+		var htmlPosts = html.getElementsByTagName("tag");
 
-    this.hasExhaustedSearch = (htmlPosts.length < this.pageLimit);
+		this.hasExhaustedSearch = (htmlPosts.length < this.pageLimit);
 
-		for (var i = 0; i < htmlPosts.length; i++)
-		{
+		for (var i = 0; i < htmlPosts.length; i++) {
 			var htmlPost = htmlPosts[i];
 
 			this.addSlide(htmlPost);
 		}
-  }
+	}
 
-	addJsonSlides(jsonResponseText)
-	{
+	addJsonSlides(jsonResponseText) {
 		var jsonPosts;
 
-		try
-		{
+		try {
 			jsonPosts = JSON.parse(jsonResponseText);
 		}
-		catch(e)
-		{
+		catch (e) {
 			console.log("JSON failed to parse.");
 			console.log(e);
 			return;
 		}
 
-		if (this.id == SITE_DERPIBOORU)
-		{
+		if (this.id == SITE_DERPIBOORU) {
 			jsonPosts = jsonPosts["images"];
-		}else if(this.id == SITE_E621){
+		} else if (this.id == SITE_E621) {
 			jsonPosts = jsonPosts["posts"]
 			// console.log(jsonPosts)
 		}
 
 		this.hasExhaustedSearch = (jsonPosts.length < this.pageLimit);
 
-		for (var i = 0; i < jsonPosts.length; i++)
-		{
+		for (var i = 0; i < jsonPosts.length; i++) {
 			var jsonPost = jsonPosts[i];
 
 			this.addSlide(jsonPost);
 		}
 	}
 
-	addSlide(jsonOrXmlPost)
-	{
+	addSlide(jsonOrXmlPost) {
 		console.log('addSlide() was not implemented.');
 	}
 
-	hasntExhaustedSearch()
-	{
+	hasntExhaustedSearch() {
 		return this.isEnabled && !this.hasExhaustedSearch && !this.ranIntoErrorWhileSearching;
 	}
 
-	convertSDateToDate(sDate)
-	{
+	convertSDateToDate(sDate) {
 		return new Date(sDate * 1000);
 	}
 
-	isPathForSupportedMediaType(filePath)
-	{
+	isPathForSupportedMediaType(filePath) {
 		var mediaType = this.getMediaTypeFromPath(filePath)
 
 		return this.isMediaTypeSupported(mediaType);
 	}
 
-	getMediaTypeFromPath(filePath)
-	{
+	getMediaTypeFromPath(filePath) {
 		var fileExtension = filePath.substring(filePath.length - 4);
 
-		switch (fileExtension.toLowerCase())
-		{
+		switch (fileExtension.toLowerCase()) {
 			case 'webm':
 			case '.mp4':
 				return MEDIA_TYPE_VIDEO;
@@ -280,30 +257,26 @@ class SiteManager
 		}
 	}
 
-	isMediaTypeSupported(mediaType)
-	{
+	isMediaTypeSupported(mediaType) {
 		return (mediaType == MEDIA_TYPE_IMAGE && this.sitesManager.model.includeImages) ||
 			(mediaType == MEDIA_TYPE_GIF && this.sitesManager.model.includeGifs) ||
 			(mediaType == MEDIA_TYPE_VIDEO && this.sitesManager.model.includeWebms);
 	}
 
-	isRatingAllowed(rating){
-		if(!this.sitesManager.model.includeExplicit && !this.sitesManager.model.includeQuestionable && !this.sitesManager.model.includeSafe) return true
+	isRatingAllowed(rating) {
+		if (!this.sitesManager.model.includeExplicit && !this.sitesManager.model.includeQuestionable && !this.sitesManager.model.includeSafe) return true
 		return ((rating == "e" || rating == "?") && this.sitesManager.model.includeExplicit) ||
-		(rating == "q" && this.sitesManager.model.includeQuestionable) ||
-		(rating == "s" && this.sitesManager.model.includeSafe)
+			(rating == "q" && this.sitesManager.model.includeQuestionable) ||
+			(rating == "s" && this.sitesManager.model.includeSafe)
 	}
 
-	areSomeTagsAreBlacklisted(tags, e6)
-	{
+	areSomeTagsAreBlacklisted(tags, e6) {
 		// console.log(this.sitesManager.model.personalList)
 		return this.sitesManager.model.areSomeTagsAreBlacklisted(tags, e6);
 	}
 
-	reformatFileUrl(url)
-	{
-		if (url.substring(0,2) == '//')
-		{
+	reformatFileUrl(url) {
+		if (url.substring(0, 2) == '//') {
 			url = 'http:' + url;
 		}
 

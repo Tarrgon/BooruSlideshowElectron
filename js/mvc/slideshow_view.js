@@ -52,6 +52,8 @@ class SlideshowView {
         this.favoriteButtonClickedEvent = new Event(this);
         this.includeFavoritesChangedEvent = new Event(this);
         this.favoriteRemotelyChangedEvent = new Event(this);
+        this.forwardVideoEvent = new Event(this)
+        this.backwardVideoEvent = new Event(this)
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -256,7 +258,9 @@ class SlideshowView {
                 key == L_KEY_ID ||
                 key == G_KEY_ID ||
                 key == E_KEY_ID ||
-                key == R_KEY_ID)) {
+                key == R_KEY_ID ||
+                key == ONE_KEY_ID ||
+                key == TWO_KEY_ID)) {
                 return;
             }
 
@@ -294,12 +298,16 @@ class SlideshowView {
                     _this.favoriteKeyPressedEvent.notify();
                 }
                 if (key == E_KEY_ID) {
-                    // console.log("k")
                     _this.openCurrentSlide();
                 }
                 if (key == R_KEY_ID) {
-                    // console.log("k")
                     _this._model.toggleTags();
+                }
+                if (key == ONE_KEY_ID) {
+                    _this.backwardVideoEvent.notify()
+                }
+                if (key == TWO_KEY_ID) {
+                    _this.forwardVideoEvent.notify()
                 }
             }
         });

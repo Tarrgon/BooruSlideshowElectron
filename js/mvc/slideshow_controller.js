@@ -172,6 +172,18 @@ class SlideshowController
             _this.favoriteButtonClicked();
         });
 
+        this._view.forwardVideoEvent.attach(function() {
+            let curVideo = document.getElementById("current-video")
+            if (!curVideo.src.startsWith("http")) return
+            curVideo.currentTime += 5
+        })
+
+        this._view.backwardVideoEvent.attach(function() {
+            let curVideo = document.getElementById("current-video")
+            if (!curVideo.src.startsWith("http")) return
+            curVideo.currentTime -= 5
+        })
+
         this._model.loadUserSettings();
         
         this._model.pingSites();
