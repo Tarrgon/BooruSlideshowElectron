@@ -166,6 +166,7 @@ class SiteManager {
 		var xml = parser.parseFromString(xmlResponseText, "text/xml");
 
 		var xmlPosts = xml.getElementsByTagName("post");
+		this.xmlPosts = xmlPosts
 
 		this.hasExhaustedSearch = (xmlPosts.length < this.pageLimit);
 
