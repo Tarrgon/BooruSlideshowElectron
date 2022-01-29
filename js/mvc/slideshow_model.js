@@ -42,6 +42,10 @@ class SlideshowModel {
         this.derpibooruApiKey = '';
         this.e621Login = ''
         this.e621ApiKey = ''
+        this.gelbooruLogin = ''
+        this.gelbooruApiKey = ''
+        this.danbooruLogin = ''
+        this.danbooruApiKey = ''
         this.storeHistory = true;
         this.searchHistory = [];
         this.groupedTags = []
@@ -74,6 +78,10 @@ class SlideshowModel {
         this.derpibooruApiKeyUpdatedEvent = new Event(this);
         this.e621LoginUpdatedEvent = new Event(this);
         this.e621ApiKeyUpdatedEvent = new Event(this);
+        this.gelbooruLoginUpdatedEvent = new Event(this);
+        this.gelbooruApiKeyUpdatedEvent = new Event(this);
+        this.danbooruLoginUpdatedEvent = new Event(this);
+        this.danbooruApiKeyUpdatedEvent = new Event(this);
         this.storeHistoryUpdatedEvent = new Event(this);
         this.searchHistoryUpdatedEvent = new Event(this);
         this.favoriteButtonUpdatedEvent = new Event(this);
@@ -574,6 +582,38 @@ class SlideshowModel {
         this.dataLoader.saveE621Login();
 
         this.e621LoginUpdatedEvent.notify();
+    }
+
+    setGelbooruApiKey(gelbooruApiKey) {
+        this.gelbooruApiKey = gelbooruApiKey;
+
+        this.dataLoader.saveGelbooruApiKey();
+
+        this.gelbooruApiKeyUpdatedEvent.notify();
+    }
+
+    setGelbooruLogin(gelbooruLogin) {
+        this.gelbooruLogin = gelbooruLogin;
+
+        this.dataLoader.saveGelbooruLogin();
+
+        this.gelbooruLoginUpdatedEvent.notify();
+    }
+
+    setDanbooruApiKey(danbooruApiKey) {
+        this.danbooruApiKey = danbooruApiKey;
+
+        this.dataLoader.saveDanbooruApiKey();
+
+        this.danbooruApiKeyUpdatedEvent.notify();
+    }
+
+    setDanbooruLogin(danbooruLogin) {
+        this.danbooruLogin = danbooruLogin;
+
+        this.dataLoader.saveDanbooruLogin();
+
+        this.danbooruLoginUpdatedEvent.notify();
     }
 
     setStoreHistory(onOrOff) {

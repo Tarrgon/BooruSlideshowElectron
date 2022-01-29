@@ -148,6 +148,22 @@ class SlideshowController
             _this.e621ApiKeyChanged();
         });
 
+        this._view.gelbooruLoginChangedEvent.attach(function () {
+            _this.gelbooruLoginChanged();
+        });
+
+        this._view.gelbooruApiKeyChangedEvent.attach(function () {
+            _this.gelbooruApiKeyChanged();
+        });
+
+        this._view.danbooruLoginChangedEvent.attach(function () {
+            _this.danbooruLoginChanged();
+        });
+
+        this._view.danbooruApiKeyChangedEvent.attach(function () {
+            _this.danbooruApiKeyChanged();
+        });
+
         this._view.storeHistoryChangedEvent.attach(function () {
             _this.storeHistoryChanged();
         });
@@ -472,6 +488,34 @@ class SlideshowController
         var e621ApiKey = this._view.getE621ApiKey();
 
         this._model.setE621ApiKey(e621ApiKey);
+    }
+
+    gelbooruLoginChanged()
+    {
+        var gelbooruLogin = this._view.getGelbooruLogin();
+
+        this._model.setGelbooruLogin(gelbooruLogin);
+    }
+
+    gelbooruApiKeyChanged()
+    {
+        var gelbooruApiKey = this._view.getGelbooruApiKey();
+
+        this._model.setGelbooruApiKey(gelbooruApiKey);
+    }
+
+    danbooruLoginChanged()
+    {
+        var danbooruLogin = this._view.getDanbooruLogin();
+
+        this._model.setDanbooruLogin(danbooruLogin);
+    }
+
+    danbooruApiKeyChanged()
+    {
+        var danbooruApiKey = this._view.getDanbooruApiKey();
+
+        this._model.setDanbooruApiKey(danbooruApiKey);
     }
 
     storeHistoryChanged()

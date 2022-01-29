@@ -248,7 +248,7 @@ button:disabled {
 .options input:disabled {
 	color: #777;
 }
-
+ 
 #module-container {
 	width: 98%;
 	padding: 10px;
@@ -310,12 +310,12 @@ textarea {
 	width: 100%;
 }
 
-textarea, #derpibooru-api-key, #e621-api-key, #e621-login {
+textarea, #derpibooru-api-key, #e621-api-key, #e621-login, #gelbooru-login, #gelbooru-api-key {
 	background: #181a1f;
 	color: #999;
 }
 
-textarea:focus, #derpibooru-api-key:focus, #e621-api-key:focus, #e621-login:focus {
+textarea:focus, #derpibooru-api-key:focus, #e621-api-key:focus, #e621-login:focus, #gelbooru-login:focus, #gelbooru-api-key:focus {
 	background: #292c3e;
 	color: #fff;
 }
@@ -333,7 +333,7 @@ textarea[pattern]:invalid {
 	text-decoration: underline;
 }
 
-#derpibooru-api-key, #e621-api-key, #e621-login {
+#derpibooru-api-key, #e621-api-key, #e621-login, #gelbooru-login, #gelbooru-api-key {
 	font-size: 0.8em;
 }
 
