@@ -166,7 +166,6 @@ class SiteManager {
 		var xml = parser.parseFromString(xmlResponseText, "text/xml");
 
 		var xmlPosts = xml.getElementsByTagName("post");
-		this.xmlPosts = xmlPosts
 
 		this.hasExhaustedSearch = (xmlPosts.length < this.pageLimit);
 
@@ -251,6 +250,7 @@ class SiteManager {
 			case '.gif':
 				return MEDIA_TYPE_GIF;
 			case '.swf':
+				return MEDIA_TYPE_SWF
 			case '.zip':
 				return MEDIA_TYPE_UNSUPPORTED;
 			default:
@@ -261,7 +261,8 @@ class SiteManager {
 	isMediaTypeSupported(mediaType) {
 		return (mediaType == MEDIA_TYPE_IMAGE && this.sitesManager.model.includeImages) ||
 			(mediaType == MEDIA_TYPE_GIF && this.sitesManager.model.includeGifs) ||
-			(mediaType == MEDIA_TYPE_VIDEO && this.sitesManager.model.includeWebms);
+			(mediaType == MEDIA_TYPE_VIDEO && this.sitesManager.model.includeWebms) ||
+			(mediaType == MEDIA_TYPE_SWF && this.sitesManager.model.incldueSwfs);
 	}
 
 	isRatingAllowed(rating) {

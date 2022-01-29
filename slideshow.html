@@ -1,217 +1,236 @@
 <!doctype html>
 <html>
-	<head>
-		<title>Booru Slideshow</title>
-		<meta charset="utf-8">
-		<link rel="stylesheet" type="text/css" href="css/slideshow.css">
-	</head>
 
-	<body>
+<head>
+	<title>Booru Slideshow</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/slideshow.css">
+</head>
 
-		<p id="warning-message"></p>
-		<p id="info-message"></p>
-		<div id="slide-wrapper">
-			<img id="current-image"/>
-			<video id="current-video" autoplay='true' loop='true' volume='0' controls>
-				<source type="video/webm"></source>
-			</video>
-			<img id="loading-animation" src="img/loading.gif" alt="Loading Slide" />
-			<div id="tags" style="display:none;"></div>
+<body>
+
+	<p id="warning-message"></p>
+	<p id="info-message"></p>
+	<div id="slide-wrapper">
+		<img id="current-image" />
+		<video id="current-video" autoplay='true' loop='true' volume='0' controls>
+			<source type="video/webm">
+			</source>
+		</video>
+		<embed id="current-swf">
+		<img id="loading-animation" src="img/loading.gif" alt="Loading Slide" />
+		<div id="tags" style="display:none;"></div>
+	</div>
+	<div id="indentation">
+		<div id="navigation">
+			<button id="favorite-button">♥</button>
+			<span id="current-slide-number"></span> of <span id="total-slide-number"></span><br>
+			<button class="nav-button" id="first-button">&lt;&lt;</button>
+			<button class="nav-button" id="previous-button">&lt;</button>
+			<button class="nav-button" id="play-button">&#9658;</button>
+			<button class="nav-button" id="pause-button">&#9646;&#9646;</button>
+			<button class="nav-button" id="next-button">&gt;</button>
+			<button class="nav-button" id="last-button">&gt;&gt;</button>
 		</div>
-		<div id="indentation">
-			<div id="navigation">
-				<button id="favorite-button">♥</button>
-				<span id="current-slide-number"></span> of <span id="total-slide-number"></span><br>
-				<button class="nav-button" id="first-button">&lt;&lt;</button>
-				<button class="nav-button" id="previous-button">&lt;</button>
-				<button class="nav-button" id="play-button">&#9658;</button>
-				<button class="nav-button" id="pause-button">&#9646;&#9646;</button>
-				<button class="nav-button" id="next-button">&gt;</button>
-				<button class="nav-button" id="last-button">&gt;&gt;</button>
+		<div id="thumbnail-list-wrapper">
+			<div id="thumbnail-list">
 			</div>
-			<div id="thumbnail-list-wrapper">
-				<div id="thumbnail-list">
-				</div>
+		</div>
+		<div id="search">
+			<input id="search-text" type="search" list="search-history" /><br>
+			<input id="start-page-number" type="number" style="width: 8em !important;" placeholder="Start page" /><br>
+			<button id="search-button">Search</button>
+			<datalist id="search-history"></datalist>
+		</div>
+		<div id="module-container">
+			<div id="sites-to-search">
+				<h4>Sites</h4>
+				<ul>
+					<li><label><input type="checkbox" name="sites-to-search" value="ATFB" />atfbooru.ninja</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="DANB" />danbooru.donmai.us</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="DERP" />derpibooru.org</label></li>
+					<li id="derpibooru-api-key-container"><span><a href="https://derpibooru.org/users/edit" target="_blank">(get
+								API key here)</a></span><br />
+						<label><input type="password" id="derpibooru-api-key" /></label>
+					</li>
+					<li><label><input type="checkbox" name="sites-to-search" value="E621" />e621.net</label></li>
+					<li id="e621-login-container">
+						<label><input type="login" id="e621-login" placeholder="E621 username" /></label>
+					</li>
+					<li id="e621-api-key-container"><br /><span><a href="https://e621.net/users/home" target="_blank">(get API key
+								here)</a></span><br />
+						<label><input type="password" id="e621-api-key" placeholder="E621 API key" /></label>
+					</li>
+					<li><label><input type="checkbox" name="sites-to-search" value="GELB" />gelbooru.com<br>
+							<span>(need to be logged in)</span></label></li>
+					<!--<li><label><input type="checkbox" name="sites-to-search" value="IBSE" />ibsearch.xxx</label></li>-->
+					<li><label><input type="checkbox" name="sites-to-search" value="KONA" />konachan.com</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="REAL" />realbooru.com</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="RULE" />rule34.xxx</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="PAHE" />rule34.paheal.net</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="SAFE" />safebooru.org</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="XBOO" />xbooru.com</label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="YAND" />yande.re</label></li>
+					<li class="note">Red sites are offline</li>
+				</ul>
 			</div>
-			<div id="search">
-				<input id="search-text" type="search" list="search-history" /><br>
-				<input id="start-page-number" type="number" style="width: 8em !important;" placeholder="Start page"/><br>
-				<button id="search-button">Search</button>
-				<datalist id="search-history"></datalist>
-			</div>
-			<div id="module-container">
-				<div id="sites-to-search">
-					<h4>Sites</h4>
-					<ul>
-						<li><label><input type="checkbox" name="sites-to-search" value="ATFB" />atfbooru.ninja</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="DANB" />danbooru.donmai.us</label></li>
-						<li id="danbooru-login-container">
-							<label><input type="login" id="danbooru-login" placeholder="Danbooru username"/></label>
-						</li>
-						<li id="danbooru-api-key-container"><br /><span><a href="https://danbooru.donmai.us/profile" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="danbooru-api-key" placeholder="Danbooru API key"/></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="DERP" />derpibooru.org</label></li>
-						<li id="derpibooru-api-key-container"><span><a href="https://derpibooru.org/users/edit" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="derpibooru-api-key" /></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="E621" />e621.net</label></li>
-						<li id="e621-login-container">
-							<label><input type="login" id="e621-login" placeholder="E621 username"/></label>
-						</li>
-						<li id="e621-api-key-container"><br /><span><a href="https://e621.net/users/home" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="e621-api-key" placeholder="E621 API key"/></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="GELB" />gelbooru.com<br></li>
-						<li id="gelbooru-login-container">
-							<label><input type="login" id="gelbooru-login" placeholder="Gelbooru user id"/></label>
-						</li>
-						<li id="gelbooru-api-key-container"><br /><span><a href="https://gelbooru.com/index.php?page=account&s=options" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="gelbooru-api-key" placeholder="Gelbooru API key"/></label>
-						</li>
-						<!--<li><label><input type="checkbox" name="sites-to-search" value="IBSE" />ibsearch.xxx</label></li>-->
-						<li><label><input type="checkbox" name="sites-to-search" value="KONA" />konachan.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="REAL" />realbooru.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="RULE" />rule34.xxx</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="PAHE" />rule34.paheal.net</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="SAFE" />safebooru.org</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="XBOO" />xbooru.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="YAND" />yande.re</label></li>
-						<li class="note">Red sites are offline</li>
-					</ul>
-				</div>
-				<div class="options">
-					<h4>Presentation</h4>
-					<ul>
-						<li>
-							Seconds per Slide
-							<br>
-							<input id="seconds-per-slide" type="number" min="1" />
-						</li>
-						<!--<li>
+			<div class="options">
+				<h4>Presentation</h4>
+				<ul>
+					<li>
+						Seconds per Slide
+						<br>
+						<input id="seconds-per-slide" type="number" min="1" />
+					</li>
+					<!--<li>
 							<label><input id="only-progress-when-webm-ends" type="checkbox" />Only Progress When WEBM Ends</label>
 						</li>-->
-						<li>
-							Max. Width
-							<br>
-							<input id="max-width" type="number" min="1" /><br>
-						</li>
-						<li>
-							Max. Height
-							<br>
-							<input id="max-height" type="number" min="1" />
-						</li>
-						<li>
-							<label><input id="auto-fit-slide" type="checkbox" />Auto-Fit</label>
-						</li>
-						<li>
-							<label><input id="favorite-remotely" type="checkbox" />Favorite Remotely</label>
-						</li>
+					<li>
+						Max. Width
+						<br>
+						<input id="max-width" type="number" min="1" /><br>
+					</li>
+					<li>
+						Max. Height
+						<br>
+						<input id="max-height" type="number" min="1" />
+					</li>
+					<li>
+						<label><input id="auto-fit-slide" type="checkbox" />Auto-Fit</label>
+					</li>
+					<li>
+						<label><input id="favorite-remotely" type="checkbox" />Favorite Remotely</label>
+					</li>
 
-					</ul>
-				</div>
+				</ul>
+			</div>
 
-				<div class="options">
-					<h4>Filtering</h4>
-					<ul>
-						<li>
-							<label><input id="include-images" type="checkbox" checked />Include Images</label>
-						</li>
-						<li>
-							<label><input id="include-gifs" type="checkbox" checked />Include GIFs</label>
-						</li>
-						<li>
-							<label><input id="include-webms" type="checkbox" />Include WEBMs</label>
-						</li>
-						<li>
-							<label><input id="include-explicit" type="checkbox" />Include Explicit</label>
-						</li>
-						<li>
-							<label><input id="include-questionable" type="checkbox" />Include Questionable</label>
-						</li>
-						<li>
-							<label><input id="include-safe" type="checkbox" checked />Include Safe</label>
-						</li>
-						<li>
-							<label><input id="include-faves" type="checkbox" checked />Include Faves</label>
-						</li>
-						<li>
-							<label><input id="include-dupes" type="checkbox" />Include Duplicates cross-site</label><br />
-							<label class="note">(based on MD5)</label>
-						</li>
-						<li class="note">
-							(Searching for only GIFs or WEBMs may take forever since it is still going through all image results. Consider adding "animated" to the search query.)
-						</li>
-					</ul>
+			<div class="options">
+				<h4>Filtering</h4>
+				<ul>
+					<li>
+						<label><input id="include-images" type="checkbox" checked />Include Images</label>
+					</li>
+					<li>
+						<label><input id="include-gifs" type="checkbox" checked />Include GIFs</label>
+					</li>
+					<li>
+						<label><input id="include-webms" type="checkbox" />Include WEBMs</label>
+					</li>
+					<li>
+						<label><input id="include-explicit" type="checkbox" />Include Explicit</label>
+					</li>
+					<li>
+						<label><input id="include-questionable" type="checkbox" />Include Questionable</label>
+					</li>
+					<li>
+						<label><input id="include-safe" type="checkbox" checked />Include Safe</label>
+					</li>
+					<li>
+						<label><input id="include-faves" type="checkbox" checked />Include Faves</label>
+					</li>
+					<li>
+						<label><input id="include-dupes" type="checkbox" />Include Duplicates cross-site</label><br />
+						<label class="note">(based on MD5)</label>
+					</li>
+					<li class="note">
+						(Searching for only GIFs or WEBMs may take forever since it is still going through all image results.
+						Consider adding "animated" to the search query.)
+					</li>
+				</ul>
 
-					<h4>Blacklist <label class="note"><input id="hide-blacklist" type="checkbox" />(hide)</span></h4>
-					<ul id="blacklist-container">
-						<li>
-							<textarea id="blacklist" placeholder="example dog upside_down"></textarea>
-						</li>
-						<li class="note">
-							(Results with any of these tags will be removed during a search.)
-						</li>
-					</ul>
-				</div>
-            </div>
-			<div id="module-container">
-				<div class="options">
-					<h4>History</h4>
-					<ul>
-						<li><label><input id="store-history" type="checkbox" checked />Store Search History</label></li>
-						<li class="note">
-							(Up to 100 queries are saved. Let me know if there is an issue.)
-						</li>
-						<li><button id="clear-history">Clear Search History</button></li>
-						<li class="new"><a href="personal_list.html">View All Favorites</a></li>
-					</ul>
-				</div>
-				<div id="tips">
-					<h4>Hotkeys</h4>
-					<ul>
-						<li>Full-screen (F11)</li>
-						<li>Previous (&larr; or A)</li>
-						<li>Next (&rarr; or D)</li>
-						<li>Back 10 (W)</li>
-						<li>Forward 10 (S)</li>
-						<li>Play/pause (Enter or space)</li>
-						<li>Auto-Fit (F)</li>
-						<li class="new">Open current image in new tab (E)</li>
-						<li>Download Current Image (L)</li>
-						<li>Fave/Unfave Image (G)</li>
-						<li><i>Issues or suggestions: <a href="https://github.com/Chirmaya/BooruSlideshow/issues" target="_blank">GitHub</a></i></li>
-					</ul>
-				</div>
-            </div>
-        </div>
+				<h4>Blacklist <label class="note"><input id="hide-blacklist" type="checkbox" />(hide)</span></h4>
+				<ul id="blacklist-container">
+					<li>
+						<textarea id="blacklist" placeholder="example dog upside_down"></textarea>
+					</li>
+					<li class="note">
+						(Results with any of these tags will be removed during a search.)
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div id="module-container">
+			<div class="options">
+				<h4>History</h4>
+				<ul>
+					<li><label><input id="store-history" type="checkbox" checked />Store Search History</label></li>
+					<li class="note">
+						(Up to 100 queries are saved. Let me know if there is an issue.)
+					</li>
+					<li><button id="clear-history">Clear Search History</button></li>
+					<li class="new"><a href="personal_list.html">View All Favorites</a></li>
+				</ul>
+			</div>
+			<div id="tips">
+				<h4>Hotkeys</h4>
+				<ul>
+					<li>Full-screen (F11)</li>
+					<li>Previous (&larr; or A)</li>
+					<li>Next (&rarr; or D)</li>
+					<li>Back 10 (W)</li>
+					<li>Forward 10 (S)</li>
+					<li>Play/pause (Enter or space)</li>
+					<li>Auto-Fit (F)</li>
+					<li class="new">Open current image in new tab (E)</li>
+					<li>Download Current Image (L)</li>
+					<li>Fave/Unfave Image (G)</li>
+					<li><i>Issues or suggestions: <a href="https://github.com/Chirmaya/BooruSlideshow/issues"
+								target="_blank">GitHub</a></i></li>
+				</ul>
+			</div>
+		</div>
+	</div>
 
-		<script src="js/globals.js"></script>
-		<script src="js/objects/web_requester.js"></script>
-		<script src="js/objects/site_manager.js"></script>
-		<script src="js/objects/site_managers/site_manager_atfbooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_danbooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_derpibooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_e621.js"></script>
-		<script src="js/objects/site_managers/site_manager_gelbooru.js"></script>
-		<!--<script src="js/objects/site_managers/site_manager_ibsearch.js"></script>-->
-		<script src="js/objects/site_managers/site_manager_konachan.js"></script>
-		<script src="js/objects/site_managers/site_manager_realbooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_rule34.js"></script>
-		<script src="js/objects/site_managers/site_manager_paheal.js"></script>
-		<script src="js/objects/site_managers/site_manager_safebooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_xbooru.js"></script>
-		<script src="js/objects/site_managers/site_manager_yandere.js"></script>
-		<script src="js/objects/site_manager_factory.js"></script>
-		<script src="js/objects/sites_manager.js"></script>
-		<script src="js/objects/slide.js"></script>
-		<script src="js/objects/personal_list_item.js"></script>
-		<script src="js/objects/personal_list.js"></script>
-		<script src="js/objects/event.js"></script>
-		<script src="js/objects/data_loader.js"></script>
-		<script src="js/mvc/slideshow_model.js"></script>
-		<script src="js/mvc/slideshow_view.js"></script>
-		<script src="js/mvc/slideshow_controller.js"></script>
-		<script src="js/slideshow_initialize.js"></script>
-	</body>
+	<script src="js/globals.js"></script>
+	<script src="js/objects/web_requester.js"></script>
+	<script src="js/objects/site_manager.js"></script>
+	<script src="js/objects/site_managers/site_manager_atfbooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_danbooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_derpibooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_e621.js"></script>
+	<script src="js/objects/site_managers/site_manager_gelbooru.js"></script>
+	<!--<script src="js/objects/site_managers/site_manager_ibsearch.js"></script>-->
+	<script src="js/objects/site_managers/site_manager_konachan.js"></script>
+	<script src="js/objects/site_managers/site_manager_realbooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_rule34.js"></script>
+	<script src="js/objects/site_managers/site_manager_paheal.js"></script>
+	<script src="js/objects/site_managers/site_manager_safebooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_xbooru.js"></script>
+	<script src="js/objects/site_managers/site_manager_yandere.js"></script>
+	<script src="js/objects/site_manager_factory.js"></script>
+	<script src="js/objects/sites_manager.js"></script>
+	<script src="js/objects/slide.js"></script>
+	<script src="js/objects/personal_list_item.js"></script>
+	<script src="js/objects/personal_list.js"></script>
+	<script src="js/objects/event.js"></script>
+	<script src="js/objects/data_loader.js"></script>
+	<script src="js/mvc/slideshow_model.js"></script>
+	<script src="js/mvc/slideshow_view.js"></script>
+	<script src="js/mvc/slideshow_controller.js"></script>
+	<script src="js/slideshow_initialize.js"></script>
+	<script src="js/ruffle/ruffle.js"></script>
+	<script>
+		window.RufflePlayer = window.RufflePlayer || {};
+		window.RufflePlayer.config = {
+			// Options affecting the whole page
+			"publicPath": undefined,
+			"polyfills": true,
+
+			// Options affecting files only
+			"autoplay": "auto",
+			"unmuteOverlay": "visible",
+			"backgroundColor": null,
+			"letterbox": "fullscreen",
+			"warnOnUnsupportedContent": true,
+			"contextMenu": true,
+			"upgradeToHttps": window.location.protocol === "https:",
+			"maxExecutionDuration": { "secs": 15, "nanos": 0 },
+			"logLevel": "error",
+			"base": null,
+			"menu": true,
+		};
+	</script>
+</body>
+
 </html>

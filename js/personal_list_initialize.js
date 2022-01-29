@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'infoMessage': document.getElementById('info-message'),
         'currentImage': document.getElementById('current-image'),
         'currentVideo': document.getElementById('current-video'),
+        'currentSwf': document.getElementById('current-swf'),
         'loadingAnimation': document.getElementById('loading-animation'),
         'navigation': document.getElementById('navigation'),
         'currentSlideNumber': document.getElementById('current-slide-number'),

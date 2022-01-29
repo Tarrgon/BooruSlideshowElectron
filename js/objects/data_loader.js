@@ -30,10 +30,6 @@ class DataLoader
             'derpibooruApiKey',
             'e621Login',
             'e621ApiKey',
-            'gelbooruLogin',
-            'gelbooruApiKey',
-            'danbooruLogin',
-            'danbooruApiKey',
             'storeHistory',
             'searchHistory',
             'includeDupes',
@@ -66,14 +62,10 @@ class DataLoader
                     var derpibooruApiKey = data['derpibooruApiKey'];
                     var e621Login = data['e621Login'];
                     var e621ApiKey = data['e621ApiKey'];
-                    var gelbooruLogin = data['gelbooruLogin'];
-                    var gelbooruApiKey = data['gelbooruApiKey'];
 					var storeHistory = data['storeHistory'];
                     var searchHistory = data['searchHistory'];
                     var includeDupes = data['includeDupes']
                     var favoriteRemotely = data['favoriteRemotely']
-                    var danbooruLogin = data['danbooruLogin']
-                    var danbooruApiKey = data['danbooruApiKey']
 
 					if (videoVolume == null)
 					{
@@ -130,26 +122,6 @@ class DataLoader
                     if (e621ApiKey != null && _this._model.e621ApiKey != e621ApiKey)
                     {
                         _this._model.setE621ApiKey(e621ApiKey);
-                    }
-
-                    if (gelbooruLogin != null && _this._model.gelbooruLogin != gelbooruLogin)
-                    {
-                        _this._model.setGelbooruLogin(gelbooruLogin);
-                    }
-
-                    if (gelbooruApiKey != null && _this._model.gelbooruApiKey != gelbooruApiKey)
-                    {
-                        _this._model.setGelbooruApiKey(gelbooruApiKey);
-                    }
-
-                    if (danbooruLogin != null && _this._model.danbooruLogin != danbooruLogin)
-                    {
-                        _this._model.setDanbooruLogin(danbooruLogin);
-                    }
-
-                    if (danbooruApiKey != null && _this._model.danbooruApiKey != danbooruApiKey)
-                    {
-                        _this._model.setDanbooruApiKey(danbooruApiKey);
                     }
 
                     if(favoriteRemotely != null && _this._model.favoriteRemotely != favoriteRemotely) {
@@ -424,30 +396,6 @@ class DataLoader
     {
         // console.log("saved")
         this.storage.set('e621ApiKey', {'e621ApiKey': this._model.e621ApiKey});
-    }
-
-    saveGelbooruLogin()
-    {
-        // console.log("saved")
-        this.storage.set('gelbooruLogin', {'gelbooruLogin': this._model.gelbooruLogin});
-    }
-
-    saveGelbooruApiKey()
-    {
-        // console.log("saved")
-        this.storage.set('gelbooruApiKey', {'gelbooruApiKey': this._model.gelbooruApiKey});
-    }
-
-    saveDanbooruLogin()
-    {
-        // console.log("saved")
-        this.storage.set('danbooruLogin', {'danbooruLogin': this._model.danbooruLogin});
-    }
-
-    saveDanbooruApiKey()
-    {
-        // console.log("saved")
-        this.storage.set('danbooruApiKey', {'danbooruApiKey': this._model.danbooruApiKey});
     }
 
     saveStoreHistory()

@@ -44,10 +44,6 @@ class SlideshowView {
         this.derpibooruApiKeyChangedEvent = new Event(this);
         this.e621LoginChangedEvent = new Event(this);
         this.e621ApiKeyChangedEvent = new Event(this);
-        this.gelbooruLoginChangedEvent = new Event(this);
-        this.gelbooruApiKeyChangedEvent = new Event(this);
-        this.danbooruLoginChangedEvent = new Event(this);
-        this.danbooruApiKeyChangedEvent = new Event(this);
         this.storeHistoryChangedEvent = new Event(this);
         this.clearHistoryClickedEvent = new Event(this);
         this.favoriteKeyPressedEvent = new Event(this);
@@ -164,22 +160,6 @@ class SlideshowView {
             _this.updateE621Login();
         });
 
-        this._model.gelbooruApiKeyUpdatedEvent.attach(function () {
-            _this.updateGelbooruApiKey();
-        });
-
-        this._model.gelbooruLoginUpdatedEvent.attach(function () {
-            _this.updateGelbooruLogin();
-        });
-
-        this._model.danbooruApiKeyUpdatedEvent.attach(function () {
-            _this.updateDanbooruApiKey();
-        });
-
-        this._model.danbooruLoginUpdatedEvent.attach(function () {
-            _this.updateDanbooruLogin();
-        });
-
         this._model.storeHistoryUpdatedEvent.attach(function () {
             _this.updateStoreHistory();
         });
@@ -269,6 +249,7 @@ class SlideshowView {
                 key == G_KEY_ID ||
                 key == E_KEY_ID ||
                 key == R_KEY_ID ||
+                key == T_KEY_ID ||
                 key == ONE_KEY_ID ||
                 key == TWO_KEY_ID)) {
                 return;
@@ -281,9 +262,7 @@ class SlideshowView {
                 document.activeElement !== _this.uiElements.blacklist &&
                 document.activeElement !== _this.uiElements.derpibooruApiKey &&
                 document.activeElement !== _this.uiElements.e621ApiKey &&
-                document.activeElement !== _this.uiElements.e621Login &&
-                document.activeElement !== _this.uiElements.gelbooruApiKey &&
-                document.activeElement !== _this.uiElements.gelbooruLogin) {
+                document.activeElement !== _this.uiElements.e621Login) {
 
                 if (key == LEFT_ARROW_KEY_ID || key == A_KEY_ID)
                     _this.previousNavButtonClickedEvent.notify();
@@ -314,6 +293,11 @@ class SlideshowView {
                 }
                 if (key == R_KEY_ID) {
                     _this._model.toggleTags();
+                }
+                if (key == T_KEY_ID) 
+                {
+                    _this._model.addArtistsToSearch()
+                    _this.searchTextChangedEvent.notify();
                 }
                 if (key == ONE_KEY_ID) {
                     _this.backwardVideoEvent.notify()
@@ -421,22 +405,6 @@ class SlideshowView {
             _this.e621ApiKeyChangedEvent.notify();
         });
 
-        this.uiElements.gelbooruLogin.addEventListener('change', function () {
-            _this.gelbooruLoginChangedEvent.notify();
-        });
-
-        this.uiElements.gelbooruApiKey.addEventListener('change', function () {
-            _this.gelbooruApiKeyChangedEvent.notify();
-        });
-
-        this.uiElements.danbooruLogin.addEventListener('change', function () {
-            _this.danbooruLoginChangedEvent.notify();
-        });
-
-        this.uiElements.danbooruApiKey.addEventListener('change', function () {
-            _this.danbooruApiKeyChangedEvent.notify();
-        });
-
         this.uiElements.storeHistoryCheckBox.addEventListener('change', function () {
             _this.storeHistoryChangedEvent.notify();
         });
@@ -459,6 +427,7 @@ class SlideshowView {
         this.clearInfoMessage();
         this.clearImage();
         this.clearVideo();
+        this.clearSwf();
         this.hideNavigation();
         this.clearThumbnails();
     }
@@ -552,6 +521,8 @@ class SlideshowView {
         }
         else if (currentSlide.isVideo()) {
             this.displayVideo(currentSlide);
+        }else if (currentSlide.isSwf()) {
+            this.displaySwf(currentSlide);
         }
         else {
             console.log("Trying to display slide that isn't an image or video.")
@@ -567,6 +538,7 @@ class SlideshowView {
         currentImage.style.display = 'inline';
 
         this.clearVideo();
+        this.clearSwf();
         this.updateSlideSize();
     }
 
@@ -577,6 +549,20 @@ class SlideshowView {
         currentVideo.style.display = 'inline';
 
         this.clearImage();
+        this.clearSwf();
+        this.updateSlideSize();
+        this.updateVideoVolume();
+        this.updateVideoMuted();
+    }
+
+    displaySwf(currentSlide) {
+        var currentSwf = this.uiElements.currentSwf;
+
+        currentSwf.src = currentSlide.fileUrl;
+        currentSwf.style.display = 'inline';
+
+        this.clearImage();
+        this.clearVideo();
         this.updateSlideSize();
         this.updateVideoVolume();
         this.updateVideoMuted();
@@ -601,6 +587,7 @@ class SlideshowView {
 
         var currentImage = this.uiElements.currentImage;
         var currentVideo = this.uiElements.currentVideo;
+        var currentSwf = this.uiElements.currentSwf;
 
         var autoFitSlide = this._model.autoFitSlide;
 
@@ -613,6 +600,11 @@ class SlideshowView {
         currentVideo.style.height = null;
         currentVideo.style.maxWidth = null;
         currentVideo.style.maxHeight = null;
+
+        currentSwf.style.width = null;
+        currentSwf.style.height = null;
+        currentSwf.style.maxWidth = null;
+        currentSwf.style.maxHeight = null;
 
         if (autoFitSlide) {
             var viewWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -640,6 +632,9 @@ class SlideshowView {
             else if (currentSlide.isVideo()) {
                 currentVideo.style.width = newWidth + 'px';
                 currentVideo.style.height = newHeight + 'px';
+            } else if (currentSlide.isSwf()) {
+                currentSwf.style.width = newWidth + 'px';
+                currentSwf.style.height = newHeight + 'px';
             }
             else {
                 console.log("Couldn't update slide size because slide isn't image or video.");
@@ -654,6 +649,8 @@ class SlideshowView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxWidth = maxWidth + 'px';
+                } else if (currentSlide.isSwf()) {
+                    currentSwf.style.maxWidth = maxWidth + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max width because slide isn't image or video.");
@@ -668,6 +665,8 @@ class SlideshowView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxHeight = maxHeight + 'px';
+                }else if (currentSlide.isSwf()) {
+                    currentSwf.style.maxHeight = maxHeight + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max height because slide isn't image or video.");
@@ -689,6 +688,13 @@ class SlideshowView {
 
         currentVideo.src = '';
         currentVideo.style.display = 'none';
+    }
+
+    clearSwf() {
+        var currentSwf = this.uiElements.currentSwf;
+
+        currentSwf.src = '';
+        currentSwf.style.display = 'none';
     }
 
     updateVideoVolume() {
@@ -881,16 +887,6 @@ class SlideshowView {
             if (site == SITE_E621) {
                 this.uiElements.e621LoginContainer.style.display = checked ? 'inline' : 'none';
                 this.uiElements.e621ApiKeyContainer.style.display = checked ? 'inline' : 'none';
-            }
-
-            if (site == SITE_GELBOORU) {
-                this.uiElements.gelbooruLoginContainer.style.display = checked ? 'inline' : 'none';
-                this.uiElements.gelbooruApiKeyContainer.style.display = checked ? 'inline' : 'none';
-            }
-
-            if (site == SITE_DANBOORU) {
-                this.uiElements.danbooruLoginContainer.style.display = checked ? 'inline' : 'none';
-                this.uiElements.danbooruApiKeyContainer.style.display = checked ? 'inline' : 'none';
             }
         }
     }
@@ -1104,38 +1100,6 @@ class SlideshowView {
 
     updateE621Login() {
         this.uiElements.e621Login.value = this._model.e621Login;
-    }
-
-    getGelbooruApiKey() {
-        return this.uiElements.gelbooruApiKey.value.trim();
-    }
-
-    updateGelbooruApiKey() {
-        this.uiElements.gelbooruApiKey.value = this._model.gelbooruApiKey;
-    }
-
-    getGelbooruLogin() {
-        return this.uiElements.gelbooruLogin.value.trim();
-    }
-
-    updateGelbooruLogin() {
-        this.uiElements.gelbooruLogin.value = this._model.gelbooruLogin;
-    }
-
-    getDanbooruApiKey() {
-        return this.uiElements.danbooruApiKey.value.trim();
-    }
-
-    updateDanbooruApiKey() {
-        this.uiElements.danbooruApiKey.value = this._model.danbooruApiKey;
-    }
-
-    getDanbooruLogin() {
-        return this.uiElements.danbooruLogin.value.trim();
-    }
-
-    updateDanbooruLogin() {
-        this.uiElements.danbooruLogin.value = this._model.danbooruLogin;
     }
 
     openUrlInNewWindow(url) {

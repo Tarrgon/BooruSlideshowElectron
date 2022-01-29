@@ -1,13 +1,12 @@
-class PersonalListModel{
-    constructor()
-    {
+class PersonalListModel {
+    constructor() {
         this.view = null;
 
         this.loadedSlides = []
-        
+
         this.videoVolume = 0;
         this.videoMuted = false;
-        
+
         this.filterText = "";
 
         this.secondsPerSlide = 6;
@@ -43,15 +42,14 @@ class PersonalListModel{
         this.initialize();
     }
 
-    initialize()
-    {
+    initialize() {
         var numberOfSlidesToAlwaysHaveReadyToDisplay = 20;
         var maxNumberOfThumbnails = 10;
 
         /*this.sitesManager = new SitesManager(this, numberOfSlidesToAlwaysHaveReadyToDisplay, maxNumberOfThumbnails);
-		
-		var pageLimit = 100;
-		
+    	
+        var pageLimit = 100;
+    	
         this.sitesManager.addSite(SITE_ATFBOORU, pageLimit);
         this.sitesManager.addSite(SITE_DANBOORU, pageLimit);
         this.sitesManager.addSite(SITE_DERPIBOORU, 10);
@@ -65,17 +63,18 @@ class PersonalListModel{
         this.sitesManager.addSite(SITE_YANDERE, pageLimit);*/
     }
 
-    loadUserSettings()
-    {
+    loadUserSettings() {
         this.dataLoader.loadUserSettings();
     }
 
-    performFilter(filterText)
-    {
+    performFilter(filterText) {
         //this.sitesManager.resetConnections();
 
         var _this = this;
-        var filterTextAsArray = filterText.split(" ")
+        let sites = filterText.match(/-?SITE_\w+/gm)
+        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "")
+        filterText = filterText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        var filterTextAsArray = filterText.trim().split(" ").filter(t => t != "" && t != " ")
         var orTags = filterTextAsArray.filter(tag => tag.startsWith("~"))
         var orRegex = new RegExp("\\s" + orTags.join("\\s|\\s"))
         orRegex = new RegExp(orRegex.toString().replace(/~/g, "").slice(1, -1) + "\\s", "gi")
@@ -86,22 +85,35 @@ class PersonalListModel{
         var items = this.personalList.personalListItems.filter((item) => {
             var passedOr = true
             var passedWild = true
-            if(!item.tags) return false
-            if(item.tags == "") return false
-            if(typeof item.tags != "string") return false
-            for(let i = 0; i < filterTextAsArray.length; i++){
-                if(filterTextAsArray[i].startsWith("-") && !filterTextAsArray[i].endsWith("*")){
+            if (!item.tags) return false
+            if (item.tags == "") return false
+            if (typeof item.tags != "string") return false
+            if (sites) {
+                let passSite = false
+                for (let site of sites) {
+                    if (site.startsWith("-") && item.siteId == site.slice(6)) return false
+                    else if (item.siteId == site.slice(5)) {
+                        passSite = true
+                        break
+                    }
+                }
+                if (passSite) console.log("Passes")
+                if (!passSite) return false
+            }
+            for (let i = 0; i < filterTextAsArray.length; i++) {
+                if (filterTextAsArray[i] == "" || filterTextAsArray == " ") continue
+                if (filterTextAsArray[i].startsWith("-") && !filterTextAsArray[i].endsWith("*")) {
                     let tags = (" " + item.tags.split(" ").join("  ") + " ")
                     let matched = tags.match(notRegex)
-                    if(matched) return false
-                }else if(filterTextAsArray[i].startsWith("-") && filterTextAsArray[i].endsWith("*") && item.tags.includes(" " + filterTextAsArray[i].slice(1, -1))){
+                    if (matched) return false
+                } else if (filterTextAsArray[i].startsWith("-") && filterTextAsArray[i].endsWith("*") && item.tags.includes(" " + filterTextAsArray[i].slice(1, -1))) {
                     return false
-                }else if(filterTextAsArray[i].startsWith("~")){
+                } else if (filterTextAsArray[i].startsWith("~")) {
                     let tags = (" " + item.tags.split(" ").join("  ") + " ")
                     let matched = tags.match(orRegex)
                     // console.log(tags, regex, matched)
                     passedOr = matched && matched.length > 0
-                }else if(filterTextAsArray[i].endsWith("*") && !filterTextAsArray[i].startsWith("-")){
+                } else if (filterTextAsArray[i].endsWith("*") && !filterTextAsArray[i].startsWith("-")) {
                     passedWild = item.tags.includes(filterTextAsArray[i].slice(0, -1))
                 }
             }
@@ -110,34 +122,31 @@ class PersonalListModel{
             regex = new RegExp(regex.toString().slice(1, -1) + "\\s", "gi")
             let tags = (" " + item.tags.split(" ").join("  ") + " ")
             let matched = tags.match(regex)
-            // console.log(passedOr, passedWild, matched !=  null && matched.length == noOrNotWildTags.length)
-            return (noOrNotWildTags.length == 0 || matched !=  null && matched.length == noOrNotWildTags.length) && passedOr && passedWild
+            // console.log(passedOr, passedWild, matched != null && matched.length == noOrNotWildTags.length)
+            return filterTextAsArray.length == 0 || ((noOrNotWildTags.length == 0 || matched != null && matched.length == noOrNotWildTags.length) && passedOr && passedWild)
         })
+        console.log(items)
         this.filteredPersonalList = new PersonalList(items, this.dataLoader, this)
         this.currentListItem = 1
         this.currentSlideChangedEvent.notify()
         // console.log(this.filteredPersonalList)
 
         /*this.sitesManager.performFilter(filterText, function () {
-			_this.view.clearInfoMessage();
+            _this.view.clearInfoMessage();
             _this.currentSlideChangedEvent.notify();
         });*/
     }
 
-    setSlideNumberToFirst()
-    {
-        if (this.currentListItem != 1)
-        {
+    setSlideNumberToFirst() {
+        if (this.currentListItem != 1) {
             this.currentListItem = 1;
             this.currentSlideChangedEvent.notify();
             this.restartSlideshowIfOn();
         }
     }
 
-    decreaseCurrentSlideNumber()
-    {
-        if (this.currentListItem > 1)
-        {
+    decreaseCurrentSlideNumber() {
+        if (this.currentListItem > 1) {
             this.currentListItem--;
             this.currentSlideChangedEvent.notify();
             this.restartSlideshowIfOn();
@@ -147,19 +156,16 @@ class PersonalListModel{
         }
     }
 
-    increaseCurrentSlideNumber()
-    {
-        if(!this.filtered){
-            if (this.currentListItem < this.personalList.count())
-            {
+    increaseCurrentSlideNumber() {
+        if (!this.filtered) {
+            if (this.currentListItem < this.personalList.count()) {
                 this.currentListItem++;
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
         }
-        else
-        {
-            if (this.currentListItem < this.filteredPersonalList.count()){
+        else {
+            if (this.currentListItem < this.filteredPersonalList.count()) {
                 this.currentListItem++;
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
@@ -169,11 +175,9 @@ class PersonalListModel{
             this.increaseCurrentSlideNumber()
         }
     }
-	
-    decreaseCurrentSlideNumberByTen()
-    {
-        if (this.currentListItem > 1)
-        {
+
+    decreaseCurrentSlideNumberByTen() {
+        if (this.currentListItem > 1) {
             this.currentListItem -= 10;
 
             if (this.currentListItem < 1)
@@ -183,12 +187,10 @@ class PersonalListModel{
             this.restartSlideshowIfOn();
         }
     }
-	
-    increaseCurrentSlideNumberByTen()
-    {
-        if(!this.filtered){
-            if (this.currentListItem < this.personalList.count())
-            {
+
+    increaseCurrentSlideNumberByTen() {
+        if (!this.filtered) {
+            if (this.currentListItem < this.personalList.count()) {
                 this.currentListItem += 10;
 
                 if (this.currentListItem > this.personalList.count())
@@ -197,8 +199,8 @@ class PersonalListModel{
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
-        }else{
-            if (this.currentListItem < this.filteredPersonalList.count()){
+        } else {
+            if (this.currentListItem < this.filteredPersonalList.count()) {
                 this.currentListItem += 10;
 
                 if (this.currentListItem > this.filteredPersonalList.count())
@@ -210,18 +212,15 @@ class PersonalListModel{
         }
     }
 
-    setSlideNumberToLast()
-    {
-        if(!this.filtered){
-            if (this.currentListItem != this.personalList.count())
-            {
+    setSlideNumberToLast() {
+        if (!this.filtered) {
+            if (this.currentListItem != this.personalList.count()) {
                 this.currentListItem = this.personalList.count();
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
-        }else{
-            if (this.currentListItem != this.filteredPersonalList.count())
-            {
+        } else {
+            if (this.currentListItem != this.filteredPersonalList.count()) {
                 this.currentListItem = this.filteredPersonalList.count();
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
@@ -229,21 +228,17 @@ class PersonalListModel{
         }
     }
 
-    moveToSlide(id)
-    {
+    moveToSlide(id) {
         var index = this.filtered ? this.filteredPersonalList.getIndexById(id) : this.personalList.getIndexById(id);
 
-        if (index > -1)
-        {
+        if (index > -1) {
             this.currentListItem = index + 1;
             this.currentSlideChangedEvent.notify();
         }
     }
 
-    tryToPlayOrPause()
-    {
-        if (this.hasPersonalListItems())
-        {
+    tryToPlayOrPause() {
+        if (this.hasPersonalListItems()) {
             if (this.isPlaying)
                 this.pauseSlideshow();
             else
@@ -251,8 +246,7 @@ class PersonalListModel{
         }
     }
 
-    startSlideshow()
-    {
+    startSlideshow() {
         this.tryToStartCountdown();
 
         this.isPlaying = true;
@@ -260,8 +254,7 @@ class PersonalListModel{
         this.playingChangedEvent.notify();
     }
 
-    tryToStartCountdown()
-    {
+    tryToStartCountdown() {
         this.startCountdown()
         /*if (this.sitesManager.isCurrentSlideLoaded())
         {
@@ -277,48 +270,42 @@ class PersonalListModel{
         }*/
     }
 
-    startCountdown()
-    {
+    startCountdown() {
         var millisecondsPerSlide = this.secondsPerSlide * 1000;
-	    
+
         var _this = this;
 
-        this.timer = setTimeout(function() {
-            if (_this.hasNextSlide())
-            {
+        this.timer = setTimeout(function () {
+            if (_this.hasNextSlide()) {
                 // Continue slideshow
                 _this.increaseCurrentSlideNumber();
             }
-            else
-            {
+            else {
                 // Loop when out of images/videos
                 _this.setSlideNumberToFirst();
             }
-		
+
         }, millisecondsPerSlide);
     }
 
-    restartSlideshowIfOn()
-    {
-        
-        if (this.isPlaying)
-        {
+    restartSlideshowIfOn() {
+
+        if (this.isPlaying) {
             clearTimeout(this.timer);
             this.clearCallbacksForPreloadingSlides();
-		
+
             this.tryToStartCountdown();
         }
     }
 
     clearCallbacksForPreloadingSlides() {
-		if (this.currentListItem > 0) {
-			var currentSlide = this.getCurrentSlide();
-			currentSlide.clearCallback();
-		}
-	}
+        if (this.currentListItem > 0) {
+            var currentSlide = this.getCurrentSlide();
+            currentSlide.clearCallback();
+        }
+    }
 
-    pauseSlideshow()
-    {
+    pauseSlideshow() {
         clearTimeout(this.timer);
         this.clearCallbacksForPreloadingSlides();
 
@@ -327,61 +314,53 @@ class PersonalListModel{
         this.playingChangedEvent.notify();
     }
 
-    getPersonalListItemCount()
-    {
+    getPersonalListItemCount() {
         return this.filtered ? this.filteredPersonalList.count() : this.personalList.count();
     }
 
-    hasPersonalListItems()
-    {
+    hasPersonalListItems() {
         return (this.filtered ? this.filteredPersonalList.count() : this.personalList.count() > 0);
     }
 
-    hasNextSlide()
-    {
+    hasNextSlide() {
         return (this.filtered ? this.filteredPersonalList.count() : this.personalList.count() > this.getCurrentSlideNumber());
     }
 
-    getCurrentSlide()
-    {
+    getCurrentSlide() {
         if (this.currentListItem == 0)
             return null;
         let loadedSlide = this.loadedSlides.find(t => t.id == this.getCurrentSlideID())
-        if(loadedSlide){ 
+        if (loadedSlide) {
             return loadedSlide
         }
         return this.filtered ? this.filteredPersonalList.get(this.currentListItem - 1) : this.personalList.get(this.currentListItem - 1);
     }
 
-    getCurrentSlideNumber()
-    {
+    getCurrentSlideNumber() {
         return this.currentListItem;
     }
 
-    getCurrentSlideID(){
+    getCurrentSlideID() {
         return this.filtered ? this.filteredPersonalList.personalListItems[this.currentListItem - 1].id : this.personalList.personalListItems[this.currentListItem - 1].id;
     }
 
-    getNextListItemsForThumbnails()
-    {
+    getNextListItemsForThumbnails() {
         return this.filtered ? this.filteredPersonalList.getNextItemsForThumbnails() : this.personalList.getNextItemsForThumbnails();
     }
 
-    areMaxWithAndHeightEnabled()
-    {
+    areMaxWithAndHeightEnabled() {
         return !this.autoFitSlide;
     }
 
-    removeCurrentImageFromFaves()
-    {
+    removeCurrentImageFromFaves() {
         let currentSlide = this.getCurrentSlide();
 
         if (currentSlide == null)
             return;
 
-        if(this.favoriteRemotely) {
+        if (this.favoriteRemotely) {
             if (currentSlide.siteId == SITE_E621) {
-                if(!this.cachedSiteManagers.find(sm => sm.id == SITE_E621)) {
+                if (!this.cachedSiteManagers.find(sm => sm.id == SITE_E621)) {
                     this.cachedSiteManagers.push(new SiteManagerE621(this.sitesManager, 100))
                 }
                 this.cachedSiteManagers.find(sm => sm.id == SITE_E621).favorite(false, currentSlide.id)
@@ -397,18 +376,16 @@ class PersonalListModel{
 
         this.personalListLoadedEvent.notify();
     }
-	
-    setVideoVolume(volume)
-    {
+
+    setVideoVolume(volume) {
         this.videoVolume = volume;
 
         this.dataLoader.saveVideoVolume();
 
         this.videoVolumeUpdatedEvent.notify();
     }
-	
-    setVideoMuted(muted)
-    {
+
+    setVideoMuted(muted) {
         this.videoMuted = muted;
 
         this.dataLoader.saveVideoMuted();
@@ -416,27 +393,24 @@ class PersonalListModel{
         this.videoVolumeUpdatedEvent.notify();
     }
 
-    setSiteToSearch(site, checked)
-    {
+    setSiteToSearch(site, checked) {
         this.sitesToSearch[site] = checked;
 
         this.dataLoader.saveSitesToSearch();
 
         this.sitesToSearchUpdatedEvent.notify();
     }
-	
-    setSecondsPerSlide(secondsPerSlide)
-    {
+
+    setSecondsPerSlide(secondsPerSlide) {
         this.secondsPerSlide = secondsPerSlide;
 
         this.dataLoader.saveSecondsPerSlide();
 
         this.secondsPerSlideUpdatedEvent.notify();
     }
-	
-    setSecondsPerSlideIfValid(secondsPerSlide)
-    {
-		if (secondsPerSlide == '')
+
+    setSecondsPerSlideIfValid(secondsPerSlide) {
+        if (secondsPerSlide == '')
             return;
 
         if (isNaN(secondsPerSlide))
@@ -446,10 +420,9 @@ class PersonalListModel{
             return;
 
         this.setSecondsPerSlide(secondsPerSlide);
-	}
+    }
 
-    setMaxWidth(maxWidth)
-    {
+    setMaxWidth(maxWidth) {
         this.maxWidth = maxWidth;
 
         this.dataLoader.saveMaxWidth();
@@ -457,8 +430,7 @@ class PersonalListModel{
         this.maxWidthUpdatedEvent.notify();
     }
 
-    setMaxHeight(maxHeight)
-    {
+    setMaxHeight(maxHeight) {
         this.maxHeight = maxHeight;
 
         this.dataLoader.saveMaxHeight();
@@ -466,44 +438,39 @@ class PersonalListModel{
         this.maxHeightUpdatedEvent.notify();
     }
 
-    setAutoFitSlide(onOrOff)
-    {
+    setAutoFitSlide(onOrOff) {
         this.autoFitSlide = onOrOff;
 
         this.dataLoader.saveAutoFitSlide();
 
         this.autoFitSlideUpdatedEvent.notify();
     }
-	
-    setIncludeImages(onOrOff)
-    {
+
+    setIncludeImages(onOrOff) {
         this.includeImages = onOrOff;
 
         this.dataLoader.saveIncludeImages();
 
         this.includeImagesUpdatedEvent.notify();
     }
-	
-    setIncludeGifs(onOrOff)
-    {
+
+    setIncludeGifs(onOrOff) {
         this.includeGifs = onOrOff;
 
         this.dataLoader.saveIncludeGifs();
 
         this.includeGifsUpdatedEvent.notify();
     }
-	
-    setIncludeWebms(onOrOff)
-    {
+
+    setIncludeWebms(onOrOff) {
         this.includeWebms = onOrOff;
 
         this.dataLoader.saveIncludeWebms();
 
         this.includeWebmsUpdatedEvent.notify();
     }
-	
-    setHideBlacklist(onOrOff)
-    {
+
+    setHideBlacklist(onOrOff) {
         this.hideBlacklist = onOrOff;
 
         this.dataLoader.saveHideBlacklist();
@@ -511,17 +478,15 @@ class PersonalListModel{
         this.hideBlacklistUpdatedEvent.notify();
     }
 
-    setBlacklist(blacklist)
-    {
+    setBlacklist(blacklist) {
         this.blacklist = blacklist;
 
         this.dataLoader.saveBlacklist();
 
         this.blacklistUpdatedEvent.notify();
     }
-	
-    setDerpibooruApiKey(derpibooruApiKey)
-    {
+
+    setDerpibooruApiKey(derpibooruApiKey) {
         this.derpibooruApiKey = derpibooruApiKey;
 
         this.dataLoader.saveDerpibooruApiKey();
@@ -529,8 +494,7 @@ class PersonalListModel{
         this.derpibooruApiKeyUpdatedEvent.notify();
     }
 
-    setPersonalList(personalList)
-    {
+    setPersonalList(personalList) {
         this.personalList = personalList;
 
         this.dataLoader.savePersonalList();
@@ -543,73 +507,73 @@ class PersonalListModel{
 
     preloadCurrentSlideIfNeeded() {
         var currentSlide = this.getCurrentSlide()
-        if(!currentSlide) return
+        if (!currentSlide) return
         let _this = this
         currentSlide.preload();
         this.addLoadedSlide(currentSlide)
     }
-    
-    addLoadedSlide(slide){
-        if(this.loadedSlides.find(t => t.id == slide.id)) return
+
+    addLoadedSlide(slide) {
+        if (this.loadedSlides.find(t => t.id == slide.id)) return
         this.loadedSlides.push(slide)
     }
 
-	preloadNextSlideIfNeeded() {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
-			var currentSlide = this.getCurrentSlide();
-			this.preloadNextUnpreloadedSlideIfInRange();
-		}
-	}
+    preloadNextSlideIfNeeded() {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
+            var currentSlide = this.getCurrentSlide();
+            this.preloadNextUnpreloadedSlideIfInRange();
+        }
+    }
 
-	preloadNextUnpreloadedSlideIfInRange() {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
-			var nextSlides = this.getNextListItemsForThumbnails();
-
-			for (var i = 0; i < nextSlides.length; i++) {
-				if (!nextSlides[i]) return
-				var slide = nextSlides[i];
-
-				if (!slide.isPreloaded) {
-                    slide.preload();
-                    this.addLoadedSlide(slide)
-					break;
-				}
-			}
-		}
-	}
-
-	preloadNextUnpreloadedSlideAfterThisOneIfInRange(startingSlide) {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
+    preloadNextUnpreloadedSlideIfInRange() {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
             var nextSlides = this.getNextListItemsForThumbnails();
-			if (!nextSlides) return
-			var foundStartingSlide = false;
 
-			for (var i = 0; i < nextSlides.length; i++) {
+            for (var i = 0; i < nextSlides.length; i++) {
+                if (!nextSlides[i]) return
                 var slide = nextSlides[i];
 
-				if (foundStartingSlide || (this.currentListItem == 1 && startingSlide.id == this.getCurrentSlide(1).id)) {
+                if (!slide.isPreloaded) {
+                    slide.preload();
+                    this.addLoadedSlide(slide)
+                    break;
+                }
+            }
+        }
+    }
+
+    preloadNextUnpreloadedSlideAfterThisOneIfInRange(startingSlide) {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
+            var nextSlides = this.getNextListItemsForThumbnails();
+            if (!nextSlides) return
+            var foundStartingSlide = false;
+
+            for (var i = 0; i < nextSlides.length; i++) {
+                var slide = nextSlides[i];
+
+                if (foundStartingSlide || (this.currentListItem == 1 && startingSlide.id == this.getCurrentSlide(1).id)) {
                     foundStartingSlide = true;
                     var _this = this
-					if (!slide.isPreloaded) {
+                    if (!slide.isPreloaded) {
                         slide.preload();
                         this.addLoadedSlide(slide)
-						break;
-					}
-				}
+                        break;
+                    }
+                }
 
-				if (startingSlide.id == slide.id) {
-					foundStartingSlide = true;
-				}
-			}
-		}
-	}
-
-	isCurrentSlideLoaded() {
-		if (this.currentListItem > 0) {
-			return this.getCurrentSlide().isPreloaded;
-		}
+                if (startingSlide.id == slide.id) {
+                    foundStartingSlide = true;
+                }
+            }
+        }
     }
-    
+
+    isCurrentSlideLoaded() {
+        if (this.currentListItem > 0) {
+            return this.getCurrentSlide().isPreloaded;
+        }
+    }
+
     setE621ApiKey(e621ApiKey) {
         this.e621ApiKey = e621ApiKey;
     }

@@ -14,6 +14,7 @@ let SITE_YANDERE = 'YAND';
 
 let MEDIA_TYPE_IMAGE = 'IMAGE';
 let MEDIA_TYPE_GIF = 'GIF';
+let MEDIA_TYPE_SWF = 'SWF';
 let MEDIA_TYPE_VIDEO = 'VIDEO';
 let MEDIA_TYPE_UNSUPPORTED = 'UNSUPPORTED';
 
@@ -30,6 +31,7 @@ let L_KEY_ID = 76;
 let G_KEY_ID = 71;
 let E_KEY_ID = 69;
 let R_KEY_ID = 82;
+let T_KEY_ID = 84;
 let ONE_KEY_ID = 49;
 let TWO_KEY_ID = 50;
 

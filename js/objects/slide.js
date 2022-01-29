@@ -129,6 +129,11 @@ class Slide
 		return this.mediaType == MEDIA_TYPE_VIDEO;
 	}
 
+	isSwf()
+	{
+		return this.mediaType == MEDIA_TYPE_SWF;
+	}
+
 	toString()
 	{
 		return 'Slide ' + this.id + ' ' + this.fileUrl + ' ' + this.fileUrl + ' ' + this.previewFileUrl + ' ' + this.width + ' ' + this.height;

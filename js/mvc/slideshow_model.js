@@ -1,3 +1,5 @@
+let maxTags = 40
+
 class SlideshowModel {
     constructor() {
         this.view = null;
@@ -30,6 +32,7 @@ class SlideshowModel {
         this.includeImages = true;
         this.includeGifs = true;
         this.includeWebms = false;
+        this.incldueSwfs = false;
         this.includeExplicit = false
         this.includeQuestionable = false
         this.includeSafe = true
@@ -39,10 +42,6 @@ class SlideshowModel {
         this.derpibooruApiKey = '';
         this.e621Login = ''
         this.e621ApiKey = ''
-        this.gelbooruLogin = ''
-        this.gelbooruApiKey = ''
-        this.danbooruLogin = ''
-        this.danbooruApiKey = ''
         this.storeHistory = true;
         this.searchHistory = [];
         this.groupedTags = []
@@ -75,16 +74,15 @@ class SlideshowModel {
         this.derpibooruApiKeyUpdatedEvent = new Event(this);
         this.e621LoginUpdatedEvent = new Event(this);
         this.e621ApiKeyUpdatedEvent = new Event(this);
-        this.gelbooruLoginUpdatedEvent = new Event(this);
-        this.gelbooruApiKeyUpdatedEvent = new Event(this);
-        this.danbooruLoginUpdatedEvent = new Event(this);
-        this.danbooruApiKeyUpdatedEvent = new Event(this);
         this.storeHistoryUpdatedEvent = new Event(this);
         this.searchHistoryUpdatedEvent = new Event(this);
         this.favoriteButtonUpdatedEvent = new Event(this);
         this.includeDupesUpdatedEvent = new Event(this);
         this.includeFavoritesUpdatedEvent = new Event(this)
         this.favoriteRemotelyUpdatedEvent = new Event(this)
+
+        this.htmlParser = require("node-html-parser")
+        this.cloudScraper = require("cloudscraper")
 
         this.dataLoader = new DataLoader(this);
 
@@ -578,38 +576,6 @@ class SlideshowModel {
         this.e621LoginUpdatedEvent.notify();
     }
 
-    setGelbooruApiKey(gelbooruApiKey) {
-        this.gelbooruApiKey = gelbooruApiKey;
-
-        this.dataLoader.saveGelbooruApiKey();
-
-        this.gelbooruApiKeyUpdatedEvent.notify();
-    }
-
-    setGelbooruLogin(gelbooruLogin) {
-        this.gelbooruLogin = gelbooruLogin;
-
-        this.dataLoader.saveGelbooruLogin();
-
-        this.gelbooruLoginUpdatedEvent.notify();
-    }
-
-    setDanbooruApiKey(danbooruApiKey) {
-        this.danbooruApiKey = danbooruApiKey;
-
-        this.dataLoader.saveDanbooruApiKey();
-
-        this.danbooruApiKeyUpdatedEvent.notify();
-    }
-
-    setDanbooruLogin(danbooruLogin) {
-        this.danbooruLogin = danbooruLogin;
-
-        this.dataLoader.saveDanbooruLogin();
-
-        this.danbooruLoginUpdatedEvent.notify();
-    }
-
     setStoreHistory(onOrOff) {
         this.storeHistory = onOrOff;
 
@@ -673,5 +639,81 @@ class SlideshowModel {
 
     toggleTags() {
         this.view.toggleTags()
+    }
+
+    addArtistsToSearch(artistsArr) {
+        let match = this.view.uiElements.searchTextBox.value.match(/\(.*\)/)
+        let numTags = 0
+        if (match) {
+            numTags += match[0].trim().split(" ~ ").length
+            numTags += this.view.uiElements.searchTextBox.value.slice(0, match.index - 1).trim().split(" ").length
+        } else {
+            numTags += this.view.uiElements.searchTextBox.value.trim().split(" ").length
+        }
+        let currentSlide = this.getCurrentSlide();
+        if (!artistsArr && (!currentSlide.rawTags || !currentSlide.rawTags.artist)) {
+            if (currentSlide.siteId == SITE_RULE34 || currentSlide.siteId == SITE_XBOORU || currentSlide.siteId == SITE_KONACHAN || currentSlide.siteId == SITE_XBOORU) {
+                var _this = this
+                this.cloudScraper.get(currentSlide.viewableWebsitePostUrl).then((html) => {
+                    let parsed = this.htmlParser.parse(html)
+                    let artists = []
+                    for(let element of parsed.querySelectorAll(".tag-type-artist")) {
+                        for(let possibility of element.querySelectorAll("a")) {
+                            if (possibility.structuredText.trim() != "?") {
+                                artists.push(possibility.structuredText.trim())
+                                break
+                            }
+                        }
+                        
+                    }
+                    _this.addArtistsToSearch(artists)
+                }, console.error)
+            } else if(currentSlide.siteId == SITE_REALBOORU) {
+                var _this = this
+                this.cloudScraper.get(currentSlide.viewableWebsitePostUrl).then((html) => {
+                    let parsed = this.htmlParser.parse(html)
+                    let artists = []
+                    for(let element of parsed.querySelectorAll(".model")) {
+                        artists.push(element.structuredText.trim())
+                    }
+                    _this.addArtistsToSearch(artists)
+                }, console.error)
+            }
+            return;
+        }
+        // if (artistsArr.length == 0) return;
+        if (artistsArr) {
+            currentSlide.rawTags = { artist: artistsArr }
+        }
+        console.log(numTags)
+        let artists = "";
+        let notNormal = this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] != ")"
+        if (this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] == ")") this.view.uiElements.searchTextBox.value = this.view.uiElements.searchTextBox.value.substring(0, this.view.uiElements.searchTextBox.value.length - 1)
+        for (let artist of currentSlide.rawTags.artist) {
+            if (artist == "unknown_artist" || artist == "anonymous_artist" ||  artist == "conditional_dnp" || artist == "sound_warning" || this.view.uiElements.searchTextBox.value.includes(artist.split(" ").join("_")))
+                continue;
+            if (numTags >= maxTags - 1) {
+                this.view.displayInfoMessage("Max tags reached")
+                setTimeout(() => {
+                    this.view.clearInfoMessage()
+                }, 5000);
+                break
+            }
+            if (notNormal) {
+                artists += `( ${artist.split(" ").join("_")} `;
+                notNormal = false
+            } else {
+                artists += `~ ${artist.split(" ").join("_")} `;
+            }
+            numTags++
+        }
+        artists += ")"
+        if (numTags >= maxTags) {
+            this.view.displayInfoMessage(`${maxTags} tags reached`)
+            setTimeout(() => {
+                this.view.clearInfoMessage()
+            }, 5000);
+        }
+        this.view.uiElements.searchTextBox.value += artists
     }
 }
