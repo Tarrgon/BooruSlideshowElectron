@@ -74,62 +74,15 @@
 					<li class="note">Red sites are offline</li>
 				</ul>
 			</div>
-			<div id="search">
-				<input id="search-text" type="search" list="search-history" /><br>
-				<input id="start-page-number" type="number" style="width: 8em !important;" placeholder="Start page"/><br>
-				<button id="search-button">Search</button>
-				<datalist id="search-history"></datalist>
-			</div>
-			<div id="module-container">
-				<div id="sites-to-search">
-					<h4>Sites</h4>
-					<ul>
-						<li><label><input type="checkbox" name="sites-to-search" value="ATFB" />atfbooru.ninja</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="DANB" />danbooru.donmai.us</label></li>
-						<li id="danbooru-login-container">
-							<label><input type="login" id="danbooru-login" placeholder="Danbooru username"/></label>
-						</li>
-						<li id="danbooru-api-key-container"><br /><span><a href="https://danbooru.donmai.us/profile" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="danbooru-api-key" placeholder="Danbooru API key"/></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="DERP" />derpibooru.org</label></li>
-						<li id="derpibooru-api-key-container"><span><a href="https://derpibooru.org/users/edit" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="derpibooru-api-key" /></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="E621" />e621.net</label></li>
-						<li id="e621-login-container">
-							<label><input type="login" id="e621-login" placeholder="E621 username"/></label>
-						</li>
-						<li id="e621-api-key-container"><br /><span><a href="https://e621.net/users/home" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="e621-api-key" placeholder="E621 API key"/></label>
-						</li>
-						<li><label><input type="checkbox" name="sites-to-search" value="GELB" />gelbooru.com<br></li>
-						<li id="gelbooru-login-container">
-							<label><input type="login" id="gelbooru-login" placeholder="Gelbooru user id"/></label>
-						</li>
-						<li id="gelbooru-api-key-container"><br /><span><a href="https://gelbooru.com/index.php?page=account&s=options" target="_blank">(get API key here)</a></span><br />
-							<label><input type="password" id="gelbooru-api-key" placeholder="Gelbooru API key"/></label>
-						</li>
-						<!--<li><label><input type="checkbox" name="sites-to-search" value="IBSE" />ibsearch.xxx</label></li>-->
-						<li><label><input type="checkbox" name="sites-to-search" value="KONA" />konachan.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="REAL" />realbooru.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="RULE" />rule34.xxx</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="PAHE" />rule34.paheal.net</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="SAFE" />safebooru.org</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="XBOO" />xbooru.com</label></li>
-						<li><label><input type="checkbox" name="sites-to-search" value="YAND" />yande.re</label></li>
-						<li class="note">Red sites are offline</li>
-					</ul>
-				</div>
-				<div class="options">
-					<h4>Presentation</h4>
-					<ul>
-						<li>
-							Seconds per Slide
-							<br>
-							<input id="seconds-per-slide" type="number" min="1" />
-						</li>
-						<!--<li>
+			<div class="options">
+				<h4>Presentation</h4>
+				<ul>
+					<li>
+						Seconds per Slide
+						<br>
+						<input id="seconds-per-slide" type="number" min="1" />
+					</li>
+					<!--<li>
 							<label><input id="only-progress-when-webm-ends" type="checkbox" />Only Progress When WEBM Ends</label>
 						</li>-->
 					<li>
