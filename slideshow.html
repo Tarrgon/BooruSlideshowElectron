@@ -17,7 +17,6 @@
 			<source type="video/webm">
 			</source>
 		</video>
-		<embed id="current-swf">
 		<img id="loading-animation" src="img/loading.gif" alt="Loading Slide" />
 		<div id="tags" style="display:none;"></div>
 	</div>
@@ -48,6 +47,13 @@
 				<ul>
 					<li><label><input type="checkbox" name="sites-to-search" value="ATFB" />atfbooru.ninja</label></li>
 					<li><label><input type="checkbox" name="sites-to-search" value="DANB" />danbooru.donmai.us</label></li>
+					<li id="danbooru-login-container">
+						<label><input type="login" id="danbooru-login" placeholder="Danbooru username" /></label>
+					</li>
+					<li id="danbooru-api-key-container"><br /><span><a href="https://danbooru.donmai.us/profile"
+								target="_blank">(get API key here)</a></span><br />
+						<label><input type="password" id="danbooru-api-key" placeholder="Danbooru API key" /></label>
+					</li>
 					<li><label><input type="checkbox" name="sites-to-search" value="DERP" />derpibooru.org</label></li>
 					<li id="derpibooru-api-key-container"><span><a href="https://derpibooru.org/users/edit" target="_blank">(get
 								API key here)</a></span><br />
@@ -61,8 +67,15 @@
 								here)</a></span><br />
 						<label><input type="password" id="e621-api-key" placeholder="E621 API key" /></label>
 					</li>
-					<li><label><input type="checkbox" name="sites-to-search" value="GELB" />gelbooru.com<br>
-							<span>(need to be logged in)</span></label></li>
+					<li><label><input type="checkbox" name="sites-to-search" value="GELB" />gelbooru.com<br></li>
+					<li id="gelbooru-login-container">
+						<label><input type="login" id="gelbooru-login" placeholder="Gelbooru user id" /></label>
+					</li>
+					<li id="gelbooru-api-key-container"><br /><span><a
+								href="https://gelbooru.com/index.php?page=account&s=options" target="_blank">(get API key
+								here)</a></span><br />
+						<label><input type="password" id="gelbooru-api-key" placeholder="Gelbooru API key" /></label>
+					</li>
 					<!--<li><label><input type="checkbox" name="sites-to-search" value="IBSE" />ibsearch.xxx</label></li>-->
 					<li><label><input type="checkbox" name="sites-to-search" value="KONA" />konachan.com</label></li>
 					<li><label><input type="checkbox" name="sites-to-search" value="REAL" />realbooru.com</label></li>
@@ -209,28 +222,6 @@
 	<script src="js/mvc/slideshow_view.js"></script>
 	<script src="js/mvc/slideshow_controller.js"></script>
 	<script src="js/slideshow_initialize.js"></script>
-	<script src="js/ruffle/ruffle.js"></script>
-	<script>
-		window.RufflePlayer = window.RufflePlayer || {};
-		window.RufflePlayer.config = {
-			// Options affecting the whole page
-			"publicPath": undefined,
-			"polyfills": true,
-
-			// Options affecting files only
-			"autoplay": "auto",
-			"unmuteOverlay": "visible",
-			"backgroundColor": null,
-			"letterbox": "fullscreen",
-			"warnOnUnsupportedContent": true,
-			"contextMenu": true,
-			"upgradeToHttps": window.location.protocol === "https:",
-			"maxExecutionDuration": { "secs": 15, "nanos": 0 },
-			"logLevel": "error",
-			"base": null,
-			"menu": true,
-		};
-	</script>
 </body>
 
 </html>
