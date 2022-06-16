@@ -10,10 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cloudscraper": "^4.6.0",
     "electron": "^8.2.4",
     "electron-download-manager": "^2.1.2",
     "electron-json-storage": "^4.1.8",
     "electron-localshortcut": "^3.2.1",
-    "electron-packager": "^14.2.1"
+    "electron-packager": "^14.2.1",
+    "node-html-parser": "^5.3.3"
   }
 }
