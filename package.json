@@ -5,7 +5,13 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager ./ booruslideshowelectron --all --icon=./img/bs_icon_19.ico --overwrite"
+    "build": "electron-packager ./ booruslideshowelectron --all --icon=./img/bs_icon_19.ico --overwrite",
+    "build-win64": "electron-packager ./ booruslideshowelectron --platform=win32 --arch=x64 --icon=./img/bs_icon_19.ico --overwrite",
+    "build-win32": "electron-packager ./ booruslideshowelectron --platform=win32 --arch=ia32 --icon=./img/bs_icon_19.ico --overwrite",
+    "build-linux64": "electron-packager ./ booruslideshowelectron --platform=linux --arch=x64 --icon=./img/bs_icon_19.ico --overwrite",
+    "build-linux32": "electron-packager ./ booruslideshowelectron --platform=linux --arch=ia32 --icon=./img/bs_icon_19.ico --overwrite",
+    "build-linuxarm64": "electron-packager ./ booruslideshowelectron --platform=linux --arch=arm64 --icon=./img/bs_icon_19.ico --overwrite",
+    "build-linuxarm7l": "electron-packager ./ booruslideshowelectron --platform=linux --arch=armv7l --icon=./img/bs_icon_19.ico --overwrite"
   },
   "author": "",
   "license": "ISC",
