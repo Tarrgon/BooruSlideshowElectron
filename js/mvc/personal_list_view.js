@@ -37,6 +37,12 @@ class PersonalListView {
         this.randomizeOrderClickEvent = new Event(this)
         this.forwardVideoEvent = new Event(this)
         this.backwardVideoEvent = new Event(this)
+        this.playVideoEvent = new Event(this)
+
+        this.slideshowPlaysFullVideoChangedEvent = new Event(this)
+        this.slideshowGifLoopChangedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsChangedEvent = new Event(this)
+
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -90,6 +96,18 @@ class PersonalListView {
             _this.clearInfoMessage();
             _this.updateSlidesAndNavigation();
         });
+
+        this._model.slideshowPlaysFullVideoUpdatedEvent.attach(function () {
+            _this.updateSlideshowPlaysFullVideo();
+        })
+
+        this._model.slideshowGifLoopUpdatedEvent.attach(function () {
+            _this.updateSlideshowGifLoop();
+        })
+
+        this._model.slideshowLowDurationMp4SecondsUpdatedEvent.attach(function () {
+            _this.updateSlideshowLowDurationMp4Seconds();
+        })
     }
 
     attachUiElementListeners() {
@@ -141,7 +159,6 @@ class PersonalListView {
 
         document.addEventListener('keydown', function (e) {
             var key = e.which || e.keyCode;
-            console.log(key)
             if (!(
                 key == ENTER_KEY_ID ||
                 key == SPACE_KEY_ID ||
@@ -156,7 +173,8 @@ class PersonalListView {
                 key == G_KEY_ID ||
                 key == E_KEY_ID ||
                 key == ONE_KEY_ID ||
-                key == TWO_KEY_ID)) {
+                key == TWO_KEY_ID ||
+                key == THREE_KEY_ID)) {
                 return;
             }
 
@@ -199,6 +217,9 @@ class PersonalListView {
                 }
                 if (key == TWO_KEY_ID) {
                     _this.forwardVideoEvent.notify()
+                }
+                if (key == THREE_KEY_ID) {
+                    _this.playVideoEvent.notify()
                 }
             }
         });
@@ -743,5 +764,29 @@ class PersonalListView {
 
             console.log("DONE: " + info.url)
         })
+    }
+
+    updateSlideshowPlaysFullVideo() {
+        this.uiElements.slideshowPlaysFullVideo.checked = this._model.slideshowPlaysFullVideo;
+    }
+
+    getSlideshowPlaysFullVideo() {
+        return this.uiElements.slideshowPlaysFullVideo.checked;
+    }
+
+    updateSlideshowGifLoop() {
+        this.uiElements.slideshowGifLoopCount.value = this._model.slideshowGifLoop;
+    }
+
+    getSlideshowGifLoop() {
+        return Number(this.uiElements.slideshowGifLoopCount.value);
+    }
+
+    updateSlideshowLowDurationMp4Seconds() {
+        this.uiElements.slideshowLowDurationMp4Seconds.value = this._model.slideshowLowDurationMp4Seconds;
+    }
+
+    getSlideshowLowDurationMp4Seconds() {
+        return Number(this.uiElements.slideshowLowDurationMp4Seconds.value);
     }
 }

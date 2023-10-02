@@ -56,6 +56,12 @@ class SlideshowView {
         this.favoriteRemotelyChangedEvent = new Event(this);
         this.forwardVideoEvent = new Event(this)
         this.backwardVideoEvent = new Event(this)
+        this.playVideoEvent = new Event(this)
+        this.selectSearchHistoryItem = new Event(this)
+
+        this.slideshowPlaysFullVideoChangedEvent = new Event(this)
+        this.slideshowGifLoopChangedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsChangedEvent = new Event(this)
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -191,6 +197,18 @@ class SlideshowView {
         this._model.favoriteButtonUpdatedEvent.attach(function () {
             _this.updateFavoriteButton();
         });
+
+        this._model.slideshowPlaysFullVideoUpdatedEvent.attach(function () {
+            _this.updateSlideshowPlaysFullVideo();
+        })
+
+        this._model.slideshowGifLoopUpdatedEvent.attach(function () {
+            _this.updateSlideshowGifLoop();
+        })
+
+        this._model.slideshowLowDurationMp4SecondsUpdatedEvent.attach(function () {
+            _this.updateSlideshowLowDurationMp4Seconds();
+        })
     }
 
     attachUiElementListeners() {
@@ -252,6 +270,26 @@ class SlideshowView {
             _this.pauseButtonClickedEvent.notify();
         });
 
+        this.uiElements.searchTextBox.addEventListener('input', function (e) {
+            if (e.inputType) return
+            // console.log(e.target.value)
+            let wantedIndex = parseInt(e.target.value.match(/^(-(\d*)-)/)[2])
+            for (let val of _this.uiElements.searchHistory.options) {
+                // console.log(e.target.value)
+                // console.log(val.value)
+                // console.log(e.target.value.startsWith(val.value))
+                let index = parseInt(val.value.match(/^(-(\d*)-)/)[2])
+                // let id = 
+
+                if (wantedIndex == index) {
+                    // console.log(_this._model.searchHistory[val.getAttribute("data-index")])
+                    _this.uiElements.searchTextBox.value = val.value.replace(/^(-(\d*)-)/, "");
+                    return;
+                }
+                // break
+            }
+        });
+
         document.addEventListener('keydown', function (e) {
             var key = e.which || e.keyCode;
 
@@ -269,8 +307,10 @@ class SlideshowView {
                 key == G_KEY_ID ||
                 key == E_KEY_ID ||
                 key == R_KEY_ID ||
+                key == T_KEY_ID ||
                 key == ONE_KEY_ID ||
-                key == TWO_KEY_ID)) {
+                key == TWO_KEY_ID ||
+                key == THREE_KEY_ID)) {
                 return;
             }
 
@@ -315,11 +355,18 @@ class SlideshowView {
                 if (key == R_KEY_ID) {
                     _this._model.toggleTags();
                 }
+                if (key == T_KEY_ID) {
+                    _this._model.addArtistsToSearch()
+                    _this.searchTextChangedEvent.notify();
+                }
                 if (key == ONE_KEY_ID) {
                     _this.backwardVideoEvent.notify()
                 }
                 if (key == TWO_KEY_ID) {
                     _this.forwardVideoEvent.notify()
+                }
+                if (key == THREE_KEY_ID) {
+                    _this.playVideoEvent.notify()
                 }
             }
         });
@@ -452,6 +499,18 @@ class SlideshowView {
         this.uiElements.favoriteRemotelyCheckBox.addEventListener('change', function () {
             _this.favoriteRemotelyChangedEvent.notify();
         });
+
+        this.uiElements.slideshowPlaysFullVideo.addEventListener('change', function () {
+            _this.slideshowPlaysFullVideoChangedEvent.notify();
+        })
+
+        this.uiElements.slideshowGifLoopCount.addEventListener('change', function () {
+            _this.slideshowGifLoopChangedEvent.notify();
+        })
+
+        this.uiElements.slideshowLowDurationMp4Seconds.addEventListener('change', function () {
+            _this.slideshowLowDurationMp4SecondsChangedEvent.notify();
+        })
     }
 
     clearUI() {
@@ -1050,10 +1109,15 @@ class SlideshowView {
             var searchHistoryItem = this._model.searchHistory[i];
 
             var optionElement = document.createElement("option");
-            optionElement.value = searchHistoryItem;
+            optionElement.value = `-${i}-` + searchHistoryItem;
+            optionElement.setAttribute("data-index", i);
 
             searchHistory.appendChild(optionElement);
         }
+    }
+
+    getSearchHistoryAt(index) {
+        return this._model.searchHistory[index];
     }
 
     getHideBlacklist() {
@@ -1075,11 +1139,11 @@ class SlideshowView {
         //this.validateBlacklist();
     }
 
-	/*validateBlacklist() {
+    /*validateBlacklist() {
         var blacklist = this.uiElements.blacklist.value;
-		
-		var pattern = new RegExp(/[^\s]+/i);
-		console.log(pattern.test(blacklist));
+    	
+        var pattern = new RegExp(/[^\s]+/i);
+        console.log(pattern.test(blacklist));
     }*/
 
     getDerpibooruApiKey() {
@@ -1175,7 +1239,7 @@ class SlideshowView {
                 return;
             }
 
-            console.log("DONE: " + info.url)
+            // console.log("DONE: " + info.url)
         })
     }
 
@@ -1206,5 +1270,29 @@ class SlideshowView {
             this.uiElements.tags.style.display = "none"
             this.uiElements.tags.innerHTML = ""
         }
+    }
+
+    updateSlideshowPlaysFullVideo() {
+        this.uiElements.slideshowPlaysFullVideo.checked = this._model.slideshowPlaysFullVideo;
+    }
+
+    getSlideshowPlaysFullVideo() {
+        return this.uiElements.slideshowPlaysFullVideo.checked;
+    }
+
+    updateSlideshowGifLoop() {
+        this.uiElements.slideshowGifLoopCount.value = this._model.slideshowGifLoop;
+    }
+
+    getSlideshowGifLoop() {
+        return Number(this.uiElements.slideshowGifLoopCount.value);
+    }
+
+    updateSlideshowLowDurationMp4Seconds() {
+        this.uiElements.slideshowLowDurationMp4Seconds.value = this._model.slideshowLowDurationMp4Seconds;
+    }
+
+    getSlideshowLowDurationMp4Seconds() {
+        return Number(this.uiElements.slideshowLowDurationMp4Seconds.value);
     }
 }

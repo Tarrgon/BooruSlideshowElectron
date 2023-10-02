@@ -1,13 +1,19 @@
-class PersonalListModel{
-    constructor()
-    {
+async function getBufferFromUrl(url) {
+    const response = await axios.get(url, {
+        responseType: 'arraybuffer'
+    })
+    return Buffer.from(response.data, 'base64')
+}
+
+class PersonalListModel {
+    constructor() {
         this.view = null;
 
         this.loadedSlides = []
-        
+
         this.videoVolume = 0;
         this.videoMuted = false;
-        
+
         this.filterText = "";
 
         this.secondsPerSlide = 6;
@@ -18,6 +24,10 @@ class PersonalListModel{
         this.isPlaying = false;
         this.timer = null;
         this.timerMs = 0;
+
+        this.slideshowPlaysFullVideo = false
+        this.slideshowGifLoop = 4
+        this.slideshowLowDurationMp4Seconds = 10
 
         this.sitesManager = new SitesManager(this, 20, 10)
         this.cachedSiteManagers = []
@@ -37,21 +47,24 @@ class PersonalListModel{
         this.autoFitSlideUpdatedEvent = new Event(this);
         this.personalListLoadedEvent = new Event(this);
 
+        this.slideshowPlaysFullVideoUpdatedEvent = new Event(this)
+        this.slideshowGifLoopUpdatedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsUpdatedEvent = new Event(this)
+
 
         this.currentListItem = 0;
 
         this.initialize();
     }
 
-    initialize()
-    {
+    initialize() {
         var numberOfSlidesToAlwaysHaveReadyToDisplay = 20;
         var maxNumberOfThumbnails = 10;
 
         /*this.sitesManager = new SitesManager(this, numberOfSlidesToAlwaysHaveReadyToDisplay, maxNumberOfThumbnails);
-		
-		var pageLimit = 100;
-		
+    	
+        var pageLimit = 100;
+    	
         this.sitesManager.addSite(SITE_ATFBOORU, pageLimit);
         this.sitesManager.addSite(SITE_DANBOORU, pageLimit);
         this.sitesManager.addSite(SITE_DERPIBOORU, 10);
@@ -65,79 +78,300 @@ class PersonalListModel{
         this.sitesManager.addSite(SITE_YANDERE, pageLimit);*/
     }
 
-    loadUserSettings()
-    {
+    loadUserSettings() {
         this.dataLoader.loadUserSettings();
     }
 
-    performFilter(filterText)
-    {
-        //this.sitesManager.resetConnections();
+    _min(d0, d1, d2, bx, ay) {
+        return d0 < d1 || d2 < d1
+            ? d0 > d2
+                ? d2 + 1
+                : d0 + 1
+            : bx === ay
+                ? d1
+                : d1 + 1;
+    }
 
-        var _this = this;
-        var filterTextAsArray = filterText.split(" ")
-        var orTags = filterTextAsArray.filter(tag => tag.startsWith("~"))
-        var orRegex = new RegExp("\\s" + orTags.join("\\s|\\s"))
-        orRegex = new RegExp(orRegex.toString().replace(/~/g, "").slice(1, -1) + "\\s", "gi")
-        var notTags = filterTextAsArray.filter(tag => tag.startsWith("-"))
-        var notRegex = new RegExp("\\s" + notTags.join("\\s|\\s"))
-        notRegex = new RegExp(notRegex.toString().replace(/-/g, "").slice(1, -1) + "\\s", "gi")
-        this.filtered = true
-        var items = this.personalList.personalListItems.filter((item) => {
-            var passedOr = true
-            var passedWild = true
-            if(!item.tags) return false
-            if(item.tags == "") return false
-            if(typeof item.tags != "string") return false
-            for(let i = 0; i < filterTextAsArray.length; i++){
-                if(filterTextAsArray[i].startsWith("-") && !filterTextAsArray[i].endsWith("*")){
-                    let tags = (" " + item.tags.split(" ").join("  ") + " ")
-                    let matched = tags.match(notRegex)
-                    if(matched) return false
-                }else if(filterTextAsArray[i].startsWith("-") && filterTextAsArray[i].endsWith("*") && item.tags.includes(" " + filterTextAsArray[i].slice(1, -1))){
-                    return false
-                }else if(filterTextAsArray[i].startsWith("~")){
-                    let tags = (" " + item.tags.split(" ").join("  ") + " ")
-                    let matched = tags.match(orRegex)
-                    // console.log(tags, regex, matched)
-                    passedOr = matched && matched.length > 0
-                }else if(filterTextAsArray[i].endsWith("*") && !filterTextAsArray[i].startsWith("-")){
-                    passedWild = item.tags.includes(filterTextAsArray[i].slice(0, -1))
+    levenshtein(a, b) {
+        if (a === b) {
+            return 0;
+        }
+
+        if (a.length > b.length) {
+            var tmp = a;
+            a = b;
+            b = tmp;
+        }
+
+        var la = a.length;
+        var lb = b.length;
+
+        while (la > 0 && (a.charCodeAt(la - 1) === b.charCodeAt(lb - 1))) {
+            la--;
+            lb--;
+        }
+
+        var offset = 0;
+
+        while (offset < la && (a.charCodeAt(offset) === b.charCodeAt(offset))) {
+            offset++;
+        }
+
+        la -= offset;
+        lb -= offset;
+
+        if (la === 0 || lb < 3) {
+            return lb;
+        }
+
+        var x = 0;
+        var y;
+        var d0;
+        var d1;
+        var d2;
+        var d3;
+        var dd;
+        var dy;
+        var ay;
+        var bx0;
+        var bx1;
+        var bx2;
+        var bx3;
+
+        var vector = [];
+
+        for (y = 0; y < la; y++) {
+            vector.push(y + 1);
+            vector.push(a.charCodeAt(offset + y));
+        }
+
+        var len = vector.length - 1;
+
+        for (; x < lb - 3;) {
+            bx0 = b.charCodeAt(offset + (d0 = x));
+            bx1 = b.charCodeAt(offset + (d1 = x + 1));
+            bx2 = b.charCodeAt(offset + (d2 = x + 2));
+            bx3 = b.charCodeAt(offset + (d3 = x + 3));
+            dd = (x += 4);
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y];
+                ay = vector[y + 1];
+                d0 = this._min(dy, d0, d1, bx0, ay);
+                d1 = this._min(d0, d1, d2, bx1, ay);
+                d2 = this._min(d1, d2, d3, bx2, ay);
+                dd = this._min(d2, d3, dd, bx3, ay);
+                vector[y] = dd;
+                d3 = d2;
+                d2 = d1;
+                d1 = d0;
+                d0 = dy;
+            }
+        }
+
+        for (; x < lb;) {
+            bx0 = b.charCodeAt(offset + (d0 = x));
+            dd = ++x;
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y];
+                vector[y] = dd = this._min(dy, d0, dd, bx0, vector[y + 1]);
+                d0 = dy;
+            }
+        }
+
+        return dd;
+    }
+
+    tagsPass(tags, singleTag, negate = false, fuzzy = false) {
+        if (!tags || !singleTag) return false;
+
+        let result = false
+        for (let tag of tags) {
+            if (fuzzy) {
+                if (this.levenshtein(singleTag, tag) <= 2) {
+                    result = true
+                    break;
                 }
             }
-            let noOrNotWildTags = filterTextAsArray.filter(tag => !tag.startsWith("-") && !tag.startsWith("~") && !tag.endsWith("*"))
-            let regex = new RegExp("\\s" + noOrNotWildTags.join("\\s|\\s"))
-            regex = new RegExp(regex.toString().slice(1, -1) + "\\s", "gi")
-            let tags = (" " + item.tags.split(" ").join("  ") + " ")
-            let matched = tags.match(regex)
-            // console.log(passedOr, passedWild, matched !=  null && matched.length == noOrNotWildTags.length)
-            return (noOrNotWildTags.length == 0 || matched !=  null && matched.length == noOrNotWildTags.length) && passedOr && passedWild
+            else {
+                if (singleTag.includes("*")) {
+                    let regex = new RegExp(singleTag.replace("*", ".*"))
+                    if (tag.match(regex)) {
+                        result = true
+                        break
+                    }
+                } else if (tag == singleTag) {
+                    result = true
+                    break;
+                }
+            }
+        }
+
+
+        return negate ? !result : result;
+    }
+
+    passesGroup(item, group) {
+        let passesAnd = true
+        for (let tag of group.and) {
+            let fuzzy = tag.endsWith("~")
+            if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
+                passesAnd = false
+                break
+            }
+        }
+
+        let passesNot = true
+        for (let tag of group.not) {
+            let fuzzy = tag.endsWith("~")
+            if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, true, fuzzy)) {
+                passesNot = false
+                break
+            }
+        }
+
+        let passesOr = false
+        for (let tag of group.or) {
+            let fuzzy = tag.endsWith("~")
+            if (this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
+                passesOr = true
+                break
+            }
+        }
+
+        return (group.or.length == 0 || passesOr) && passesAnd && passesNot
+    }
+
+    performFilter(filterText) {
+        //this.sitesManager.resetConnections();
+        let sites = filterText.match(/-?SITE_\w+/gm)
+        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "").trim()
+
+        let groups = [
+            {
+                or: [],
+                and: [],
+                not: []
+            }
+        ] // has to pass all groups
+        // group structure:
+        /**  
+        {
+            or: [[tag1, tag2], [tag3, tag4], [tag5]] // has to pass one of the groups
+            and: [tag1, tag2, tag3]
+            not: [tag1, tag2, tag3]]
+        }
+        */
+
+        let tokenized = filterText.split("")
+
+        let getNextToken = function (index) {
+            if (index >= tokenized.length) return null;
+            let token = ""
+            for (let i = index + 1; i < tokenized.length; i++) {
+                let t = tokenized[i]
+                if (t == " ") {
+                    return token
+                } else {
+                    token += t
+                }
+            }
+        }
+
+        let skip = ["~", ")"]
+        let inGroup = false
+        let nextOr = false
+        let token = ""
+        for (let i = 0; i < tokenized.length; i++) {
+            let t = tokenized[i]
+            if (t == " ") {
+                if (token == "(") {
+                    inGroup = true
+                    groups.push({
+                        or: [],
+                        and: [],
+                        not: []
+                    })
+                } else if (token == ")") {
+                    inGroup = false
+                }
+                else if (!skip.includes(token)) {
+                    if (nextOr) {
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                        if (getNextToken(i) != "~") {
+                            nextOr = false
+                        }
+                    } else if (getNextToken(i) == "~") {
+                        nextOr = true
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                    } else if (token.startsWith("-")) {
+                        groups[inGroup ? groups.length - 1 : 0].not.push(token.substring(1))
+                    }
+                    else {
+                        groups[inGroup ? groups.length - 1 : 0].and.push(token)
+                    }
+                }
+                token = ""
+            }
+            else {
+                token += t
+            }
+        }
+
+        if (token.length > 0 && !skip.includes(token)) {
+            if (nextOr) {
+                groups[inGroup ? groups.length - 1 : 0].or.push(token.substring(1))
+            } else if (token.startsWith("-")) {
+                groups[inGroup ? groups.length - 1 : 0].not.push(token.substring(1))
+            }
+            else {
+                groups[inGroup ? groups.length - 1 : 0].and.push(token)
+            }
+        }
+
+        this.filtered = true
+
+        var items = this.personalList.personalListItems.filter((item) => {
+            if (!item.tags || item.tags == "" || typeof item.tags != "string") return false
+            if (sites) {
+                let passSite = false
+                for (let site of sites) {
+                    if (site.startsWith("-") && item.siteId == site.slice(5)) return false
+                    else if (item.siteId == site.slice(5)) {
+                        passSite = true
+                        break
+                    }
+                }
+                if (!passSite) return false
+            }
+
+            for (let group of groups) {
+                if (!this.passesGroup(item, group)) return false
+            }
+
+            return true
         })
+
         this.filteredPersonalList = new PersonalList(items, this.dataLoader, this)
         this.currentListItem = 1
         this.currentSlideChangedEvent.notify()
         // console.log(this.filteredPersonalList)
 
         /*this.sitesManager.performFilter(filterText, function () {
-			_this.view.clearInfoMessage();
+            _this.view.clearInfoMessage();
             _this.currentSlideChangedEvent.notify();
         });*/
     }
 
-    setSlideNumberToFirst()
-    {
-        if (this.currentListItem != 1)
-        {
+    setSlideNumberToFirst() {
+        if (this.currentListItem != 1) {
             this.currentListItem = 1;
             this.currentSlideChangedEvent.notify();
             this.restartSlideshowIfOn();
         }
     }
 
-    decreaseCurrentSlideNumber()
-    {
-        if (this.currentListItem > 1)
-        {
+    decreaseCurrentSlideNumber() {
+        if (this.currentListItem > 1) {
             this.currentListItem--;
             this.currentSlideChangedEvent.notify();
             this.restartSlideshowIfOn();
@@ -147,19 +381,16 @@ class PersonalListModel{
         }
     }
 
-    increaseCurrentSlideNumber()
-    {
-        if(!this.filtered){
-            if (this.currentListItem < this.personalList.count())
-            {
+    increaseCurrentSlideNumber() {
+        if (!this.filtered) {
+            if (this.currentListItem < this.personalList.count()) {
                 this.currentListItem++;
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
         }
-        else
-        {
-            if (this.currentListItem < this.filteredPersonalList.count()){
+        else {
+            if (this.currentListItem < this.filteredPersonalList.count()) {
                 this.currentListItem++;
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
@@ -169,11 +400,9 @@ class PersonalListModel{
             this.increaseCurrentSlideNumber()
         }
     }
-	
-    decreaseCurrentSlideNumberByTen()
-    {
-        if (this.currentListItem > 1)
-        {
+
+    decreaseCurrentSlideNumberByTen() {
+        if (this.currentListItem > 1) {
             this.currentListItem -= 10;
 
             if (this.currentListItem < 1)
@@ -183,12 +412,10 @@ class PersonalListModel{
             this.restartSlideshowIfOn();
         }
     }
-	
-    increaseCurrentSlideNumberByTen()
-    {
-        if(!this.filtered){
-            if (this.currentListItem < this.personalList.count())
-            {
+
+    increaseCurrentSlideNumberByTen() {
+        if (!this.filtered) {
+            if (this.currentListItem < this.personalList.count()) {
                 this.currentListItem += 10;
 
                 if (this.currentListItem > this.personalList.count())
@@ -197,8 +424,8 @@ class PersonalListModel{
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
-        }else{
-            if (this.currentListItem < this.filteredPersonalList.count()){
+        } else {
+            if (this.currentListItem < this.filteredPersonalList.count()) {
                 this.currentListItem += 10;
 
                 if (this.currentListItem > this.filteredPersonalList.count())
@@ -210,18 +437,15 @@ class PersonalListModel{
         }
     }
 
-    setSlideNumberToLast()
-    {
-        if(!this.filtered){
-            if (this.currentListItem != this.personalList.count())
-            {
+    setSlideNumberToLast() {
+        if (!this.filtered) {
+            if (this.currentListItem != this.personalList.count()) {
                 this.currentListItem = this.personalList.count();
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
             }
-        }else{
-            if (this.currentListItem != this.filteredPersonalList.count())
-            {
+        } else {
+            if (this.currentListItem != this.filteredPersonalList.count()) {
                 this.currentListItem = this.filteredPersonalList.count();
                 this.currentSlideChangedEvent.notify();
                 this.restartSlideshowIfOn();
@@ -229,21 +453,17 @@ class PersonalListModel{
         }
     }
 
-    moveToSlide(id)
-    {
+    moveToSlide(id) {
         var index = this.filtered ? this.filteredPersonalList.getIndexById(id) : this.personalList.getIndexById(id);
 
-        if (index > -1)
-        {
+        if (index > -1) {
             this.currentListItem = index + 1;
             this.currentSlideChangedEvent.notify();
         }
     }
 
-    tryToPlayOrPause()
-    {
-        if (this.hasPersonalListItems())
-        {
+    tryToPlayOrPause() {
+        if (this.hasPersonalListItems()) {
             if (this.isPlaying)
                 this.pauseSlideshow();
             else
@@ -251,8 +471,7 @@ class PersonalListModel{
         }
     }
 
-    startSlideshow()
-    {
+    startSlideshow() {
         this.tryToStartCountdown();
 
         this.isPlaying = true;
@@ -260,8 +479,7 @@ class PersonalListModel{
         this.playingChangedEvent.notify();
     }
 
-    tryToStartCountdown()
-    {
+    tryToStartCountdown() {
         this.startCountdown()
         /*if (this.sitesManager.isCurrentSlideLoaded())
         {
@@ -277,48 +495,76 @@ class PersonalListModel{
         }*/
     }
 
-    startCountdown()
-    {
+    async startCountdown() {
         var millisecondsPerSlide = this.secondsPerSlide * 1000;
-	    
+
+        if (this.slideshowPlaysFullVideo) {
+            var slide = this.getCurrentSlide();
+            if (slide.mediaType == MEDIA_TYPE_GIF) {
+                var buffer = await getBufferFromUrl(slide.fileUrl)
+                var frames = await gifFrames({ url: buffer, frames: "all", outputType: "png" })
+                let duration = 0
+                for (let frame of frames) {
+                    duration += frame.frameInfo.delay
+                }
+                millisecondsPerSlide = duration * 10
+
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += duration * 10;
+                }
+            } else if (slide.mediaType == MEDIA_TYPE_VIDEO) {
+                if (this.view.uiElements.currentVideo.readyState === 4) {
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                } else {
+                    await new Promise(resolve => {
+                        this.view.uiElements.currentVideo.onloadeddata = () => {
+                            resolve();
+                        }
+                    })
+
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                }
+                
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += this.view.uiElements.currentVideo.duration * 1000;
+                }
+            }
+        }
+
+
         var _this = this;
 
-        this.timer = setTimeout(function() {
-            if (_this.hasNextSlide())
-            {
+        this.timer = setTimeout(function () {
+            if (_this.hasNextSlide()) {
                 // Continue slideshow
                 _this.increaseCurrentSlideNumber();
             }
-            else
-            {
+            else {
                 // Loop when out of images/videos
                 _this.setSlideNumberToFirst();
             }
-		
+
         }, millisecondsPerSlide);
     }
 
-    restartSlideshowIfOn()
-    {
-        
-        if (this.isPlaying)
-        {
+    restartSlideshowIfOn() {
+
+        if (this.isPlaying) {
             clearTimeout(this.timer);
             this.clearCallbacksForPreloadingSlides();
-		
+
             this.tryToStartCountdown();
         }
     }
 
     clearCallbacksForPreloadingSlides() {
-		if (this.currentListItem > 0) {
-			var currentSlide = this.getCurrentSlide();
-			currentSlide.clearCallback();
-		}
-	}
+        if (this.currentListItem > 0) {
+            var currentSlide = this.getCurrentSlide();
+            currentSlide.clearCallback();
+        }
+    }
 
-    pauseSlideshow()
-    {
+    pauseSlideshow() {
         clearTimeout(this.timer);
         this.clearCallbacksForPreloadingSlides();
 
@@ -327,61 +573,54 @@ class PersonalListModel{
         this.playingChangedEvent.notify();
     }
 
-    getPersonalListItemCount()
-    {
+    getPersonalListItemCount() {
         return this.filtered ? this.filteredPersonalList.count() : this.personalList.count();
     }
 
-    hasPersonalListItems()
-    {
+    hasPersonalListItems() {
         return (this.filtered ? this.filteredPersonalList.count() : this.personalList.count() > 0);
     }
 
-    hasNextSlide()
-    {
+    hasNextSlide() {
         return (this.filtered ? this.filteredPersonalList.count() : this.personalList.count() > this.getCurrentSlideNumber());
     }
 
-    getCurrentSlide()
-    {
+    getCurrentSlide() {
+        if (this.filtered && this.filteredPersonalList.length == 0) return null
         if (this.currentListItem == 0)
             return null;
         let loadedSlide = this.loadedSlides.find(t => t.id == this.getCurrentSlideID())
-        if(loadedSlide){ 
+        if (loadedSlide) {
             return loadedSlide
         }
         return this.filtered ? this.filteredPersonalList.get(this.currentListItem - 1) : this.personalList.get(this.currentListItem - 1);
     }
 
-    getCurrentSlideNumber()
-    {
+    getCurrentSlideNumber() {
         return this.currentListItem;
     }
 
-    getCurrentSlideID(){
+    getCurrentSlideID() {
         return this.filtered ? this.filteredPersonalList.personalListItems[this.currentListItem - 1].id : this.personalList.personalListItems[this.currentListItem - 1].id;
     }
 
-    getNextListItemsForThumbnails()
-    {
+    getNextListItemsForThumbnails() {
         return this.filtered ? this.filteredPersonalList.getNextItemsForThumbnails() : this.personalList.getNextItemsForThumbnails();
     }
 
-    areMaxWithAndHeightEnabled()
-    {
+    areMaxWithAndHeightEnabled() {
         return !this.autoFitSlide;
     }
 
-    removeCurrentImageFromFaves()
-    {
+    removeCurrentImageFromFaves() {
         let currentSlide = this.getCurrentSlide();
 
         if (currentSlide == null)
             return;
 
-        if(this.favoriteRemotely) {
+        if (this.favoriteRemotely) {
             if (currentSlide.siteId == SITE_E621) {
-                if(!this.cachedSiteManagers.find(sm => sm.id == SITE_E621)) {
+                if (!this.cachedSiteManagers.find(sm => sm.id == SITE_E621)) {
                     this.cachedSiteManagers.push(new SiteManagerE621(this.sitesManager, 100))
                 }
                 this.cachedSiteManagers.find(sm => sm.id == SITE_E621).favorite(false, currentSlide.id)
@@ -397,18 +636,16 @@ class PersonalListModel{
 
         this.personalListLoadedEvent.notify();
     }
-	
-    setVideoVolume(volume)
-    {
+
+    setVideoVolume(volume) {
         this.videoVolume = volume;
 
         this.dataLoader.saveVideoVolume();
 
         this.videoVolumeUpdatedEvent.notify();
     }
-	
-    setVideoMuted(muted)
-    {
+
+    setVideoMuted(muted) {
         this.videoMuted = muted;
 
         this.dataLoader.saveVideoMuted();
@@ -416,27 +653,24 @@ class PersonalListModel{
         this.videoVolumeUpdatedEvent.notify();
     }
 
-    setSiteToSearch(site, checked)
-    {
+    setSiteToSearch(site, checked) {
         this.sitesToSearch[site] = checked;
 
         this.dataLoader.saveSitesToSearch();
 
         this.sitesToSearchUpdatedEvent.notify();
     }
-	
-    setSecondsPerSlide(secondsPerSlide)
-    {
+
+    setSecondsPerSlide(secondsPerSlide) {
         this.secondsPerSlide = secondsPerSlide;
 
         this.dataLoader.saveSecondsPerSlide();
 
         this.secondsPerSlideUpdatedEvent.notify();
     }
-	
-    setSecondsPerSlideIfValid(secondsPerSlide)
-    {
-		if (secondsPerSlide == '')
+
+    setSecondsPerSlideIfValid(secondsPerSlide) {
+        if (secondsPerSlide == '')
             return;
 
         if (isNaN(secondsPerSlide))
@@ -446,10 +680,9 @@ class PersonalListModel{
             return;
 
         this.setSecondsPerSlide(secondsPerSlide);
-	}
+    }
 
-    setMaxWidth(maxWidth)
-    {
+    setMaxWidth(maxWidth) {
         this.maxWidth = maxWidth;
 
         this.dataLoader.saveMaxWidth();
@@ -457,8 +690,7 @@ class PersonalListModel{
         this.maxWidthUpdatedEvent.notify();
     }
 
-    setMaxHeight(maxHeight)
-    {
+    setMaxHeight(maxHeight) {
         this.maxHeight = maxHeight;
 
         this.dataLoader.saveMaxHeight();
@@ -466,44 +698,39 @@ class PersonalListModel{
         this.maxHeightUpdatedEvent.notify();
     }
 
-    setAutoFitSlide(onOrOff)
-    {
+    setAutoFitSlide(onOrOff) {
         this.autoFitSlide = onOrOff;
 
         this.dataLoader.saveAutoFitSlide();
 
         this.autoFitSlideUpdatedEvent.notify();
     }
-	
-    setIncludeImages(onOrOff)
-    {
+
+    setIncludeImages(onOrOff) {
         this.includeImages = onOrOff;
 
         this.dataLoader.saveIncludeImages();
 
         this.includeImagesUpdatedEvent.notify();
     }
-	
-    setIncludeGifs(onOrOff)
-    {
+
+    setIncludeGifs(onOrOff) {
         this.includeGifs = onOrOff;
 
         this.dataLoader.saveIncludeGifs();
 
         this.includeGifsUpdatedEvent.notify();
     }
-	
-    setIncludeWebms(onOrOff)
-    {
+
+    setIncludeWebms(onOrOff) {
         this.includeWebms = onOrOff;
 
         this.dataLoader.saveIncludeWebms();
 
         this.includeWebmsUpdatedEvent.notify();
     }
-	
-    setHideBlacklist(onOrOff)
-    {
+
+    setHideBlacklist(onOrOff) {
         this.hideBlacklist = onOrOff;
 
         this.dataLoader.saveHideBlacklist();
@@ -511,17 +738,15 @@ class PersonalListModel{
         this.hideBlacklistUpdatedEvent.notify();
     }
 
-    setBlacklist(blacklist)
-    {
+    setBlacklist(blacklist) {
         this.blacklist = blacklist;
 
         this.dataLoader.saveBlacklist();
 
         this.blacklistUpdatedEvent.notify();
     }
-	
-    setDerpibooruApiKey(derpibooruApiKey)
-    {
+
+    setDerpibooruApiKey(derpibooruApiKey) {
         this.derpibooruApiKey = derpibooruApiKey;
 
         this.dataLoader.saveDerpibooruApiKey();
@@ -529,8 +754,7 @@ class PersonalListModel{
         this.derpibooruApiKeyUpdatedEvent.notify();
     }
 
-    setPersonalList(personalList)
-    {
+    setPersonalList(personalList) {
         this.personalList = personalList;
 
         this.dataLoader.savePersonalList();
@@ -543,73 +767,73 @@ class PersonalListModel{
 
     preloadCurrentSlideIfNeeded() {
         var currentSlide = this.getCurrentSlide()
-        if(!currentSlide) return
+        if (!currentSlide) return
         let _this = this
         currentSlide.preload();
         this.addLoadedSlide(currentSlide)
     }
-    
-    addLoadedSlide(slide){
-        if(this.loadedSlides.find(t => t.id == slide.id)) return
+
+    addLoadedSlide(slide) {
+        if (this.loadedSlides.find(t => t.id == slide.id)) return
         this.loadedSlides.push(slide)
     }
 
-	preloadNextSlideIfNeeded() {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
-			var currentSlide = this.getCurrentSlide();
-			this.preloadNextUnpreloadedSlideIfInRange();
-		}
-	}
+    preloadNextSlideIfNeeded() {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
+            var currentSlide = this.getCurrentSlide();
+            this.preloadNextUnpreloadedSlideIfInRange();
+        }
+    }
 
-	preloadNextUnpreloadedSlideIfInRange() {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
-			var nextSlides = this.getNextListItemsForThumbnails();
-
-			for (var i = 0; i < nextSlides.length; i++) {
-				if (!nextSlides[i]) return
-				var slide = nextSlides[i];
-
-				if (!slide.isPreloaded) {
-                    slide.preload();
-                    this.addLoadedSlide(slide)
-					break;
-				}
-			}
-		}
-	}
-
-	preloadNextUnpreloadedSlideAfterThisOneIfInRange(startingSlide) {
-		if (this.currentListItem < this.getPersonalListItemCount()) {
+    preloadNextUnpreloadedSlideIfInRange() {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
             var nextSlides = this.getNextListItemsForThumbnails();
-			if (!nextSlides) return
-			var foundStartingSlide = false;
 
-			for (var i = 0; i < nextSlides.length; i++) {
+            for (var i = 0; i < nextSlides.length; i++) {
+                if (!nextSlides[i]) return
                 var slide = nextSlides[i];
 
-				if (foundStartingSlide || (this.currentListItem == 1 && startingSlide.id == this.getCurrentSlide(1).id)) {
+                if (!slide.isPreloaded) {
+                    slide.preload();
+                    this.addLoadedSlide(slide)
+                    break;
+                }
+            }
+        }
+    }
+
+    preloadNextUnpreloadedSlideAfterThisOneIfInRange(startingSlide) {
+        if (this.currentListItem < this.getPersonalListItemCount()) {
+            var nextSlides = this.getNextListItemsForThumbnails();
+            if (!nextSlides) return
+            var foundStartingSlide = false;
+
+            for (var i = 0; i < nextSlides.length; i++) {
+                var slide = nextSlides[i];
+
+                if (foundStartingSlide || (this.currentListItem == 1 && startingSlide.id == this.getCurrentSlide(1).id)) {
                     foundStartingSlide = true;
                     var _this = this
-					if (!slide.isPreloaded) {
+                    if (!slide.isPreloaded) {
                         slide.preload();
                         this.addLoadedSlide(slide)
-						break;
-					}
-				}
+                        break;
+                    }
+                }
 
-				if (startingSlide.id == slide.id) {
-					foundStartingSlide = true;
-				}
-			}
-		}
-	}
-
-	isCurrentSlideLoaded() {
-		if (this.currentListItem > 0) {
-			return this.getCurrentSlide().isPreloaded;
-		}
+                if (startingSlide.id == slide.id) {
+                    foundStartingSlide = true;
+                }
+            }
+        }
     }
-    
+
+    isCurrentSlideLoaded() {
+        if (this.currentListItem > 0) {
+            return this.getCurrentSlide().isPreloaded;
+        }
+    }
+
     setE621ApiKey(e621ApiKey) {
         this.e621ApiKey = e621ApiKey;
     }
@@ -620,6 +844,30 @@ class PersonalListModel{
 
     setFavoriteRemotely(onOrOff) {
         this.favoriteRemotely = onOrOff;
+    }
+
+    setSlideshowPlaysFullVideo(onOrOff) {
+        this.slideshowPlaysFullVideo = onOrOff;
+
+        this.dataLoader.saveSlideshowPlaysFullVideo();
+
+        this.slideshowPlaysFullVideoUpdatedEvent.notify();
+    }
+
+    setSlideshowGifLoop(num) {
+        this.slideshowGifLoop = num;
+
+        this.dataLoader.saveSlideshowGifLoop();
+
+        this.slideshowGifLoopUpdatedEvent.notify();
+    }
+
+    setSlideshowLowDurationMp4Seconds(num) {
+        this.slideshowLowDurationMp4Seconds = num;
+
+        this.dataLoader.saveSlideshowLowDurationMp4Seconds();
+
+        this.slideshowLowDurationMp4SecondsUpdatedEvent.notify();
     }
 }
 

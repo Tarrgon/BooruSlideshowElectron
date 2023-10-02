@@ -59,6 +59,22 @@
 							<label><input id="auto-fit-slide" type="checkbox" />Auto-Fit</label>
 						</li>
 						
+						<li>
+							<label><input id="slideshow-plays-full-video" type="checkbox" />Slideshow Plays Full Video</label>
+						</li>
+	
+						<li>
+							Slideshow Gif Loop Count
+							<br>
+							<input id="slideshow-gif-loop-count" type="number" min="1" value="4" />
+						</li>
+	
+						<li>
+							Slideshow Low Duration mp4 Seconds
+							<br>
+							<input id="slideshow-low-duration-mp4-seconds" type="number" min="1" value="10" />
+						</li>
+
 					</ul>
 					<h4>Hotkeys</h4>
 					<ul>
@@ -69,6 +85,8 @@
             </div>
         </div>
 		
+		<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		<script src="js/gifframes.js"></script>
 		<script src="js/globals.js"></script>
 		<script src="js/objects/web_requester.js"></script>
 		<script src="js/objects/site_manager.js"></script>
@@ -94,5 +112,6 @@
 		<script src="js/mvc/personal_list_view.js"></script>
 		<script src="js/mvc/personal_list_controller.js"></script>
 		<script src="js/personal_list_initialize.js"></script>
+		<script src="js/ruffle/ruffle.js"></script>
 	</body>
 </html>

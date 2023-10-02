@@ -1,7 +1,5 @@
-class SlideshowController
-{
-    constructor(uiElements)
-    {
+class SlideshowController {
+    constructor(uiElements) {
         this._model = new SlideshowModel();
         this._view = new SlideshowView(this._model, uiElements);
         this._model.view = this._view;
@@ -12,15 +10,15 @@ class SlideshowController
         var _this = this;
 
         // Attach view listeners
-        this._view.currentImageClickedEvent.attach(function() {
+        this._view.currentImageClickedEvent.attach(function () {
             _this.currentSlideClicked();
         });
-        
-        this._view.currentVideoClickedEvent.attach(function() {
+
+        this._view.currentVideoClickedEvent.attach(function () {
             _this.currentSlideClicked();
         });
-        
-        this._view.currentVideoVolumeChangedEvent.attach(function() {
+
+        this._view.currentVideoVolumeChangedEvent.attach(function () {
             _this.videoVolumeChanged();
         });
 
@@ -39,11 +37,11 @@ class SlideshowController
         this._view.lastNavButtonClickedEvent.attach(function () {
             _this.lastNavButtonClicked();
         });
-        
+
         this._view.goBackTenImagesPressedEvent.attach(function () {
             _this.goBackTenImagesPressed();
         });
-        
+
         this._view.goForwardTenImagesPressedEvent.attach(function () {
             _this.goForwardTenImagesPressed();
         });
@@ -91,15 +89,15 @@ class SlideshowController
         this._view.autoFitSlideChangedEvent.attach(function () {
             _this.autoFitSlideChanged();
         });
-        
+
         this._view.includeImagesChangedEvent.attach(function () {
             _this.includeImagesChanged();
         });
-        
+
         this._view.includeGifsChangedEvent.attach(function () {
             _this.includeGifsChanged();
         });
-        
+
         this._view.includeWebmsChangedEvent.attach(function () {
             _this.includeWebmsChanged();
         });
@@ -116,18 +114,18 @@ class SlideshowController
             _this.includeSafeChanged();
         });
 
-        this._view.includeFavoritesChangedEvent.attach(function() {
+        this._view.includeFavoritesChangedEvent.attach(function () {
             _this.includeFavoritesChanged();
         })
 
-        this._view.favoriteRemotelyChangedEvent.attach(function() {
+        this._view.favoriteRemotelyChangedEvent.attach(function () {
             _this.favoriteRemotelyChanged();
         })
 
         this._view.includeDupesChangedEvent.attach(function () {
             _this.includeDupesChanged();
         });
-        
+
         this._view.hideBlacklistChangedEvent.attach(function () {
             _this.hideBlacklistChanged();
         });
@@ -135,7 +133,7 @@ class SlideshowController
         this._view.blacklistChangedEvent.attach(function () {
             _this.blacklistChanged();
         });
-        
+
         this._view.derpibooruApiKeyChangedEvent.attach(function () {
             _this.derpibooruApiKeyChanged();
         });
@@ -180,122 +178,124 @@ class SlideshowController
             _this.favoriteButtonClicked();
         });
 
-        this._view.forwardVideoEvent.attach(function() {
+        this._view.forwardVideoEvent.attach(function () {
             let curVideo = document.getElementById("current-video")
             if (!curVideo.src.startsWith("http")) return
             curVideo.currentTime += 5
         })
 
-        this._view.backwardVideoEvent.attach(function() {
+        this._view.backwardVideoEvent.attach(function () {
             let curVideo = document.getElementById("current-video")
             if (!curVideo.src.startsWith("http")) return
             curVideo.currentTime -= 5
         })
 
+        this._view.playVideoEvent.attach(function () {
+            let curVideo = document.getElementById("current-video")
+            if (!curVideo.src.startsWith("http")) return
+            if (curVideo.paused) curVideo.play()
+            else curVideo.pause()
+        })
+
+        this._view.slideshowPlaysFullVideoChangedEvent.attach(function () {
+            _this.slideshowPlaysFullVideoChanged();
+        })
+
+        this._view.slideshowGifLoopChangedEvent.attach(function () {
+            _this.slideshowGifLoopChanged();
+        })
+
+        this._view.slideshowLowDurationMp4SecondsChangedEvent.attach(function () {
+            _this.slideshowLowDurationMp4SecondsChanged();
+        })
+
         this._model.loadUserSettings();
-        
+
         this._model.pingSites();
     }
 
-    currentSlideClicked()
-    {
+    currentSlideClicked() {
         var currentSlide = this._model.getCurrentSlide();
 
         this._view.openUrlInNewWindow(currentSlide.viewableWebsitePostUrl);
 
         this._model.pauseSlideshow();
     }
-	
-    videoVolumeChanged()
-    {
+
+    videoVolumeChanged() {
         var videoVolume = this._view.getVideoVolume();
         var videoMuted = this._view.getVideoMuted();
-		
+
         this._model.setVideoVolume(videoVolume);
         this._model.setVideoMuted(videoMuted);
     }
 
-    firstNavButtonClicked()
-    {
+    firstNavButtonClicked() {
         this._model.setSlideNumberToFirst();
     }
 
-    previousNavButtonClicked()
-    {
+    previousNavButtonClicked() {
         this._model.decreaseCurrentSlideNumber();
     }
 
-    nextNavButtonClicked()
-    {
+    nextNavButtonClicked() {
         this._model.increaseCurrentSlideNumber();
     }
 
-    lastNavButtonClicked()
-    {
+    lastNavButtonClicked() {
         this._model.setSlideNumberToLast();
     }
-	
-    goBackTenImagesPressed()
-    {
+
+    goBackTenImagesPressed() {
         this._model.decreaseCurrentSlideNumberByTen();
     }
-	
-    goForwardTenImagesPressed()
-    {
+
+    goForwardTenImagesPressed() {
         this._model.increaseCurrentSlideNumberByTen();
     }
 
-    playButtonClicked()
-    {
+    playButtonClicked() {
         this._model.startSlideshow();
     }
 
-    pauseButtonClicked()
-    {
+    pauseButtonClicked() {
         this._model.pauseSlideshow();
     }
 
-    enterKeyPressedOutsideOfSearchTextBox()
-    {
+    enterKeyPressedOutsideOfSearchTextBox() {
         this._model.tryToPlayOrPause();
     }
 
-    searchTextChanged()
-    {
+    searchTextChanged() {
         this._model.searchText = this._view.getSearchText();
     }
 
-    enterKeyPressedInSearchTextBox()
-    {
+    enterKeyPressedInSearchTextBox() {
         this._model.searchText = this._view.getSearchText();
-		this._view.removeFocusFromSearchTextBox();
+        this._view.removeFocusFromSearchTextBox();
         this.searchButtonClicked();
     }
 
-    searchButtonClicked()
-    {
+    searchButtonClicked() {
         this._view.clearUI();
         this._view.removeFocusFromSearchButton();
 
         var searchText = this._model.searchText;
 
-        if (searchText == '')
-        {
+        if (searchText == '') {
             this._view.displayWarningMessage('The search query is blank.');
             return;
         }
 
-        if (!this._model.hasAtLeastOneOnlineSiteSelected())
-        {
+        if (!this._model.hasAtLeastOneOnlineSiteSelected()) {
             this._view.displayWarningMessage('No online sites were selected to be searched.');
             return;
         }
-		
-		var includingImagesOrGifs = (this._model.includeImages || this._model.includeGifs);
-		
-		if (!includingImagesOrGifs && !this._model.includeWebms)
-		{
-			this._view.displayWarningMessage('You must select at least one of: Images, GIFs, and WEBMs.');
+
+        var includingImagesOrGifs = (this._model.includeImages || this._model.includeGifs);
+
+        if (!includingImagesOrGifs && !this._model.includeWebms) {
+            this._view.displayWarningMessage('You must select at least one of: Images, GIFs, and WEBMs.');
             return;
         }
 
@@ -305,7 +305,7 @@ class SlideshowController
         let newText = ""
         let nonAPITagsMatches = [...searchText.matchAll(nonAPITagsReg)]
         let start = 0
-        for(let i = 0; i < nonAPITagsMatches.length; i++){
+        for (let i = 0; i < nonAPITagsMatches.length; i++) {
             newText += searchText.substr(start, nonAPITagsMatches[i].index - start)
             start = nonAPITagsMatches[i].index + nonAPITagsMatches[i][0].length
         }
@@ -313,68 +313,64 @@ class SlideshowController
         let final = ""
         let groupedTagsMatches = [...newText.matchAll(groupedTagsReg)]
         start = 0
-        for(let i = 0; i < groupedTagsMatches.length; i++){
+        for (let i = 0; i < groupedTagsMatches.length; i++) {
             final += newText.substr(start, groupedTagsMatches[i].index - start)
             start = groupedTagsMatches[i].index + groupedTagsMatches[i][0].length
         }
-        if(groupedTagsMatches.length > 0) final += newText.substr(start, Infinity)
-        if(final.length <= 0){
-            if(newText.length <= 0) final = searchText
+        if (groupedTagsMatches.length > 0) final += newText.substr(start, Infinity)
+        if (final.length <= 0) {
+            if (newText.length <= 0) final = searchText
             else final = newText
         }
         final = final.replace(/\s+/g, " ")
         this._model.groupedTags = groupedTagsMatches.map(t => t[1]).join(" ").split(" ").filter(t => t !== "")
         this._model.nonAPITags = nonAPITagsMatches.map(t => t[1]).join(" ").split(" ").filter(t => t !== "")
-		
-		var message = '';
-		
-		if (includingImagesOrGifs && this._model.includeWebms)
-			message = 'Searching for images and videos...';
-		else if (includingImagesOrGifs && !this._model.includeWebms)
-			message = 'Searching for images...';
-		else if (!includingImagesOrGifs && this._model.includeWebms)
-			message = 'Searching for videos...';
-		
-		this._view.displayInfoMessage(message);
-		
+
+        var message = '';
+
+        if (includingImagesOrGifs && this._model.includeWebms)
+            message = 'Searching for images and videos...';
+        else if (includingImagesOrGifs && !this._model.includeWebms)
+            message = 'Searching for images...';
+        else if (!includingImagesOrGifs && this._model.includeWebms)
+            message = 'Searching for videos...';
+
+        this._view.displayInfoMessage(message);
+
+        // console.log("PERFORMING")
         this._model.performSearch(final, searchText);
     }
 
-    sitesToSearchChanged(checked, site)
-    {
+    sitesToSearchChanged(checked, site) {
         this._model.setSiteToSearch(site, checked);
     }
 
-    secondsPerSlideChanged()
-    {
+    secondsPerSlideChanged() {
         var secondsPerSlideText = this._view.getSecondsPerSlide();
 
         this._model.setSecondsPerSlideIfValid(secondsPerSlideText);
     }
 
-    maxWidthChanged()
-    {
+    maxWidthChanged() {
         var maxWidthText = this._view.getMaxWidth();
 
-        if (maxWidthText == '')
-        {
-			maxWidthText = null;
+        if (maxWidthText == '') {
+            maxWidthText = null;
             //this._model.maxWidth = null;
             //return;
-				
+
         }
-		else if (isNaN(maxWidthText))
-			return;
-		else if (maxWidthText < 1)
+        else if (isNaN(maxWidthText))
             return;
-        
+        else if (maxWidthText < 1)
+            return;
+
         this._model.setMaxWidth(maxWidthText);
     }
 
-    maxHeightChanged()
-    {
+    maxHeightChanged() {
         var maxHeightText = this._view.getMaxHeight();
-        
+
         if (maxHeightText == '') {
             maxHeight = null;
         }
@@ -382,61 +378,53 @@ class SlideshowController
             return;
         else if (maxHeightText < 1)
             return;
-        
+
         this._model.setMaxHeight(maxHeightText);
     }
 
-    autoFitSlideChanged()
-    {
+    autoFitSlideChanged() {
         var autoFitSlide = this._view.getAutoFitSlide();
 
         this._model.setAutoFitSlide(autoFitSlide);
     }
-	
-    includeImagesChanged()
-    {
+
+    includeImagesChanged() {
         var includeImages = this._view.getIncludeImages();
 
         this._model.setIncludeImages(includeImages);
     }
-	
-    includeGifsChanged()
-    {
+
+    includeGifsChanged() {
         var includeGifs = this._view.getIncludeGifs();
 
         this._model.setIncludeGifs(includeGifs);
     }
-	
-    includeWebmsChanged()
-    {
+
+    includeWebmsChanged() {
         var includeWebms = this._view.getIncludeWebms();
 
         this._model.setIncludeWebms(includeWebms);
     }
 
-    includeExplicitChanged()
-    {
+    includeExplicitChanged() {
         var includeExplicit = this._view.getIncludeExplicit();
 
         this._model.setIncludeExplicit(includeExplicit);
     }
 
-    includeQuestionableChanged()
-    {
+    includeQuestionableChanged() {
         var includeQuestionable = this._view.getIncludeQuestionable();
 
         this._model.setIncludeQuestionable(includeQuestionable);
     }
 
-    includeSafeChanged()
-    {
+    includeSafeChanged() {
         var includeSafe = this._view.getIncludeSafe();
 
         this._model.setIncludeSafe(includeSafe);
     }
 
-    includeFavoritesChanged()
-    {
+    includeFavoritesChanged() {
         var includeFavorites = this._view.getIncludeFavorites();
 
         this._model.setIncludeFavorites(includeFavorites);
@@ -448,92 +436,91 @@ class SlideshowController
         this._model.setFavoriteRemotely(favoriteRemotelyChanged);
     }
 
-    includeDupesChanged()
-    {
+    includeDupesChanged() {
         var includeDupes = this._view.getIncludeDupes();
 
         this._model.setIncludeDupes(includeDupes);
     }
-	
-    hideBlacklistChanged()
-    {
+
+    hideBlacklistChanged() {
         var hideBlacklist = this._view.getHideBlacklist();
 
         this._model.setHideBlacklist(hideBlacklist);
     }
 
-    blacklistChanged()
-    {
+    blacklistChanged() {
         var blacklist = this._view.getBlacklist();
 
         this._model.setBlacklist(blacklist);
     }
-	
-    derpibooruApiKeyChanged()
-    {
+
+    derpibooruApiKeyChanged() {
         var derpibooruApiKey = this._view.getDerpibooruApiKey();
 
         this._model.setDerpibooruApiKey(derpibooruApiKey);
     }
 
-    e621LoginChanged()
-    {
+    e621LoginChanged() {
         var e621Login = this._view.getE621Login();
 
         this._model.setE621Login(e621Login);
     }
 
-    e621ApiKeyChanged()
-    {
+    e621ApiKeyChanged() {
         var e621ApiKey = this._view.getE621ApiKey();
 
         this._model.setE621ApiKey(e621ApiKey);
     }
 
-    gelbooruLoginChanged()
-    {
+    gelbooruLoginChanged() {
         var gelbooruLogin = this._view.getGelbooruLogin();
 
         this._model.setGelbooruLogin(gelbooruLogin);
     }
 
-    gelbooruApiKeyChanged()
-    {
+    gelbooruApiKeyChanged() {
         var gelbooruApiKey = this._view.getGelbooruApiKey();
 
         this._model.setGelbooruApiKey(gelbooruApiKey);
     }
 
-    danbooruLoginChanged()
-    {
+    danbooruLoginChanged() {
         var danbooruLogin = this._view.getDanbooruLogin();
 
         this._model.setDanbooruLogin(danbooruLogin);
     }
 
-    danbooruApiKeyChanged()
-    {
+    danbooruApiKeyChanged() {
         var danbooruApiKey = this._view.getDanbooruApiKey();
 
         this._model.setDanbooruApiKey(danbooruApiKey);
     }
 
-    storeHistoryChanged()
-    {
+    storeHistoryChanged() {
         var storeHistory = this._view.getStoreHistory();
 
         this._model.setStoreHistory(storeHistory);
     }
 
-    clearHistoryClicked()
-    {
+    clearHistoryClicked() {
         var searchHistory = [];
 
         this._model.setSearchHistory(searchHistory);
     }
 
-    favoriteButtonClicked()
-    {
+    favoriteButtonClicked() {
         this._model.toggleSlideFave();
+    }
+
+    slideshowPlaysFullVideoChanged() {
+        this._model.setSlideshowPlaysFullVideo(this._view.getSlideshowPlaysFullVideo());
+    }
+
+    slideshowGifLoopChanged() { 
+        this._model.setSlideshowGifLoop(this._view.getSlideshowGifLoop());
+    }
+
+    slideshowLowDurationMp4SecondsChanged() { 
+        this._model.setSlideshowLowDurationMp4Seconds(this._view.getSlideshowLowDurationMp4Seconds());
     }
 }

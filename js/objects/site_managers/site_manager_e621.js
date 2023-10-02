@@ -10,7 +10,7 @@ class SiteManagerE621 extends SiteManager {
 	buildRequestUrl(searchText, pageNumber) {
 		var query = this.buildSiteSpecificQuery(searchText);
 		let possibleLogin = this.sitesManager.model.e621ApiKey && this.sitesManager.model.e621Login ? '&login=' + this.sitesManager.model.e621Login + '&api_key=' + this.sitesManager.model.e621ApiKey : '';
-		return this.url + '/posts.json?tags=' + query +  '&page=' + pageNumber + '&limit=' + this.pageLimit + possibleLogin;
+		return this.url + '/posts.json?tags=' + query + '&page=' + pageNumber + '&limit=' + this.pageLimit + possibleLogin;
 	}
 
 	doesResponseTextIndicateOnline(responseText) {
@@ -46,17 +46,17 @@ class SiteManagerE621 extends SiteManager {
 	}
 
 	favorite(value, postId) {
-		if(!(this.sitesManager.model.e621ApiKey && this.sitesManager.model.e621Login)) {
+		if (!(this.sitesManager.model.e621ApiKey && this.sitesManager.model.e621Login)) {
 			console.log("Could not favorite remotely: not logged in")
 			return
 		}
 
-		if(value) {
+		if (value) {
 			let url = `${this.url}/favorites.json?login=${this.sitesManager.model.e621Login}&api_key=${this.sitesManager.model.e621ApiKey}&post_id=${postId}`
-			this.postRequest.makeWebsiteRequest(url, null, (txt, code) => {console.log(`Error favoriting remotely, code ${code}: ${txt}`)})
-		}else {
+			this.postRequest.makeWebsiteRequest(url, null, (txt, code) => { console.log(`Error favoriting remotely, code ${code}: ${txt}`) })
+		} else {
 			let url = `${this.url}/favorites/${postId}.json?login=${this.sitesManager.model.e621Login}&api_key=${this.sitesManager.model.e621ApiKey}`
-			this.deleteRequest.makeWebsiteRequest(url, null, (txt, code) => {console.log(`Error deleting favoriting remotely, code ${code}: ${txt}`)})
+			this.deleteRequest.makeWebsiteRequest(url, null, (txt, code) => { console.log(`Error deleting favoriting remotely, code ${code}: ${txt}`) })
 		}
 	}
 
@@ -78,6 +78,9 @@ class SiteManagerE621 extends SiteManager {
 		jsonPost.preview_url = jsonPost.preview.url
 		jsonPost.newTags = this.condenseTags(jsonPost)
 		// console.log(jsonPost.tags)
+
+		// if (jsonPost.newTags.includes("flash"))
+		
 
 		if (!this.isPathForSupportedMediaType(jsonPost.file_url))
 			return;
@@ -118,6 +121,8 @@ class SiteManagerE621 extends SiteManager {
 			jsonPost.tags
 		);
 		// console.log(newSlide)
+		if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+			return
 		if (!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
 		this.allUnsortedSlides.push(newSlide);
 	}

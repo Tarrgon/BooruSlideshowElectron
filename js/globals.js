@@ -30,8 +30,10 @@ let L_KEY_ID = 76;
 let G_KEY_ID = 71;
 let E_KEY_ID = 69;
 let R_KEY_ID = 82;
+let T_KEY_ID = 84;
 let ONE_KEY_ID = 49;
 let TWO_KEY_ID = 50;
+let THREE_KEY_ID = 51;
 
 let SITE_QUERY_TERM_ASSOCIATIONS = {};
 

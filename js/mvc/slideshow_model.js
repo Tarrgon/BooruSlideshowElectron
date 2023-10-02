@@ -1,3 +1,10 @@
+let maxTags = 20000
+let blacklistEnabled = true
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class SlideshowModel {
     constructor() {
         this.view = null;
@@ -52,6 +59,10 @@ class SlideshowModel {
         this.timer = null;
         this.timerMs = 0;
 
+        this.slideshowPlaysFullVideo = false
+        this.slideshowGifLoop = 4
+        this.slideshowLowDurationMp4Seconds = 10
+
         this.sitesManager = null;
 
         this.personalList = new PersonalList();
@@ -86,9 +97,35 @@ class SlideshowModel {
         this.includeFavoritesUpdatedEvent = new Event(this)
         this.favoriteRemotelyUpdatedEvent = new Event(this)
 
+        this.slideshowPlaysFullVideoUpdatedEvent = new Event(this)
+        this.slideshowGifLoopUpdatedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsUpdatedEvent = new Event(this)
+
+        this.seenList = null
+        this.showSeen = false
+
+        this.htmlParser = require("node-html-parser")
+        this.cloudScraper = require("cloudscraper")
+
         this.dataLoader = new DataLoader(this);
 
         this.initialize();
+
+        let _this = this
+        this.currentSlideChangedEvent.attach(function () {
+            if (_this.seenList != null) {
+                if (_this.getCurrentSlide()) {
+                    if (!_this.seenList.seenList.includes(_this.getCurrentSlide().md5)) {
+                        _this.seenList.seenList.push(_this.getCurrentSlide().md5)
+                        _this.dataLoader.saveSeenList(_this.seenList)
+                    }
+                }
+
+            }
+            else {
+                _this.seenList = { max: 1000000, seenList: [] }
+            }
+        })
     }
 
     initialize() {
@@ -144,6 +181,7 @@ class SlideshowModel {
     }
 
     storeSearchHistory(searchText) {
+        // console.log(searchText)
         if (!this.storeHistory)
             return;
 
@@ -170,17 +208,113 @@ class SlideshowModel {
     }
 
     areSomeTagsAreBlacklisted(tags) {
-        var postTags = tags.trim().split(" ");
-        var blacklistTags = this.blacklist.trim().replace(/(\r\n|\n|\r)/gm, " ").split(" ");
+        var postTags = tags.split(" ")
+        let groups = [{ normal: [], or: [] }]
+        var tokenized = this.blacklist.trim().replace(/(\r\n|\n|\r)/gm, " ").split("");
 
-        if (postTags.length == 0 || blacklistTags.length == 0)
+        if (postTags.length == 0 || tokenized.length == 0)
             return false;
 
-        for (let blacklistTag of blacklistTags) {
-            for (let postTag of postTags) {
-                if (blacklistTag == postTag) {
-                    return true;
+        let getNextToken = function (index) {
+            if (index >= tokenized.length) return null;
+            let token = ""
+            for (let i = index + 1; i < tokenized.length; i++) {
+                let t = tokenized[i]
+                if (t == " ") {
+                    return token
+                } else {
+                    token += t
                 }
+            }
+        }
+
+        let skip = [")", "~"]
+        let inGroup = false
+        let nextOr = false
+
+        let token = ""
+        for (let i = 0; i < tokenized.length; i++) {
+            let t = tokenized[i]
+            if (t == " ") {
+                if (token == "(") {
+                    inGroup = true
+                    groups.push({ normal: [], or: [] })
+                } else if (token == ")") {
+                    inGroup = false
+                }
+                else if (!skip.includes(token)) {
+                    if (nextOr) {
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                        if (getNextToken(i) != "~") {
+                            nextOr = false
+                        }
+                    } else if (getNextToken(i) == "~") {
+                        nextOr = true
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                    } else {
+                        groups[inGroup ? groups.length - 1 : 0].normal.push(token)
+                    }
+                }
+                token = ""
+            }
+            else {
+                token += t
+            }
+        }
+
+        if (token.length > 0 && !skip.includes(token)) {
+            groups[inGroup ? groups.length - 1 : 0].normal.push(token)
+        }
+
+        for (let tag of groups[0].normal) {
+            if (!tag.startsWith("-")) {
+                if (postTags.includes(tag)) return true
+            } else {
+                if (!postTags.includes(tag.slice(1))) return true
+            }
+        }
+
+        for (let i = 1; i < groups.length; i++) {
+            if (groups[i].normal.length > 0) {
+                let hasAll = true
+
+                for (let tag of groups[i].normal) {
+                    if (!tag.startsWith("-")) {
+                        if (!postTags.includes(tag)) {
+                            hasAll = false
+                            break
+                        }
+                    } else {
+                        if (postTags.includes(tag.slice(1))) {
+                            hasAll = false
+                            break
+                        }
+                    }
+                }
+
+                if (hasAll)
+                    return true
+            }
+
+            if (groups[i].or.length > 0) {
+                let hasAny = false
+
+                for (let tag of groups[i].or) {
+                    if (!tag.startsWith("-")) {
+                        if (!postTags.includes(tag)) {
+                            hasAny = true
+                            break
+                        }
+                    } else {
+                        if (postTags.includes(tag.slice(1))) {
+                            hasAny = true
+                            break
+                        }
+                    }
+                }
+
+                if (!hasAny)
+                    return true
             }
         }
 
@@ -287,8 +421,49 @@ class SlideshowModel {
         }
     }
 
-    startCountdown() {
+    async startCountdown() {
         var millisecondsPerSlide = this.secondsPerSlide * 1000;
+
+        if (this.slideshowPlaysFullVideo) {
+            var slide = this.getCurrentSlide();
+            if (slide.mediaType == MEDIA_TYPE_GIF) {
+                var buffer = await getBufferFromUrl(slide.fileUrl)
+                var frames = await gifFrames({ url: buffer, frames: "all", outputType: "png" })
+                let duration = 0
+                for (let frame of frames) {
+                    duration += frame.frameInfo.delay
+                }
+                millisecondsPerSlide = duration * 10
+
+                if (millisecondsPerSlide < this.slideshowLowDurationMp4Seconds * 1000) {
+                    millisecondsPerSlide = duration * 10 * this.slideshowGifLoop;
+
+                    while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                        millisecondsPerSlide += duration * 10;
+                    }
+                }
+
+            } else if (slide.mediaType == MEDIA_TYPE_VIDEO) {
+                if (this.view.uiElements.currentVideo.readyState === 4) {
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                } else {
+                    await new Promise(resolve => {
+                        this.view.uiElements.currentVideo.onloadeddata = () => {
+                            resolve();
+                        }
+                    })
+
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                }
+
+                if (millisecondsPerSlide < this.slideshowLowDurationMp4Seconds * 1000) {
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * this.slideshowGifLoop * 1000;
+                    while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                        millisecondsPerSlide += this.view.uiElements.currentVideo.duration * 1000;
+                    }
+                }
+            }
+        }
 
         var _this = this;
 
@@ -296,12 +471,6 @@ class SlideshowModel {
             if (_this.hasNextSlide()) {
                 // Continue slideshow
                 _this.increaseCurrentSlideNumber();
-            }
-            else if (_this.isTryingToLoadMoreSlides()) {
-                // Wait for loading images/videos to finish
-                _this.sitesManager.runCodeWhenFinishGettingMoreSlides(function () {
-                    _this.tryToStartCountdown();
-                });
             }
             else {
                 // Loop when out of images/videos
@@ -530,6 +699,30 @@ class SlideshowModel {
         this.favoriteRemotelyUpdatedEvent.notify();
     }
 
+    setSlideshowPlaysFullVideo(onOrOff) {
+        this.slideshowPlaysFullVideo = onOrOff;
+
+        this.dataLoader.saveSlideshowPlaysFullVideo();
+
+        this.slideshowPlaysFullVideoUpdatedEvent.notify();
+    }
+
+    setSlideshowGifLoop(num) {
+        this.slideshowGifLoop = num;
+
+        this.dataLoader.saveSlideshowGifLoop();
+
+        this.slideshowGifLoopUpdatedEvent.notify();
+    }
+
+    setSlideshowLowDurationMp4Seconds(num) {
+        this.slideshowLowDurationMp4Seconds = num;
+
+        this.dataLoader.saveSlideshowLowDurationMp4Seconds();
+
+        this.slideshowLowDurationMp4SecondsUpdatedEvent.notify();
+    }
+
     setIncludeDupes(onOrOff) {
         this.includeDupes = onOrOff;
 
@@ -673,5 +866,81 @@ class SlideshowModel {
 
     toggleTags() {
         this.view.toggleTags()
+    }
+
+    addArtistsToSearch(artistsArr) {
+        let match = this.view.uiElements.searchTextBox.value.match(/\(.*\)/)
+        let numTags = 0
+        if (match) {
+            numTags += match[0].trim().split(" ~ ").length
+            numTags += this.view.uiElements.searchTextBox.value.slice(0, match.index - 1).trim().split(" ").length
+        } else {
+            numTags += this.view.uiElements.searchTextBox.value.trim().split(" ").length
+        }
+        let currentSlide = this.getCurrentSlide();
+        if (!artistsArr && (!currentSlide.rawTags || !currentSlide.rawTags.artist)) {
+            if (currentSlide.siteId == SITE_RULE34 || currentSlide.siteId == SITE_XBOORU || currentSlide.siteId == SITE_KONACHAN || currentSlide.siteId == SITE_XBOORU) {
+                var _this = this
+                this.cloudScraper.get(currentSlide.viewableWebsitePostUrl).then((html) => {
+                    let parsed = this.htmlParser.parse(html)
+                    let artists = []
+                    for (let element of parsed.querySelectorAll(".tag-type-artist")) {
+                        for (let possibility of element.querySelectorAll("a")) {
+                            if (possibility.structuredText.trim() != "?") {
+                                artists.push(possibility.structuredText.trim())
+                                break
+                            }
+                        }
+
+                    }
+                    _this.addArtistsToSearch(artists)
+                }, console.error)
+            } else if (currentSlide.siteId == SITE_REALBOORU) {
+                var _this = this
+                this.cloudScraper.get(currentSlide.viewableWebsitePostUrl).then((html) => {
+                    let parsed = this.htmlParser.parse(html)
+                    let artists = []
+                    for (let element of parsed.querySelectorAll(".model")) {
+                        artists.push(element.structuredText.trim())
+                    }
+                    _this.addArtistsToSearch(artists)
+                }, console.error)
+            }
+            return;
+        }
+        // if (artistsArr.length == 0) return;
+        if (artistsArr) {
+            currentSlide.rawTags = { artist: artistsArr }
+        }
+        // console.log(numTags)
+        let artists = "";
+        let notNormal = this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] != ")"
+        if (this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] == ")") this.view.uiElements.searchTextBox.value = this.view.uiElements.searchTextBox.value.substring(0, this.view.uiElements.searchTextBox.value.length - 1)
+        for (let artist of currentSlide.rawTags.artist) {
+            if (artist == "unknown_artist" || artist == "anonymous_artist" || artist == "conditional_dnp" || artist == "sound_warning" || this.view.uiElements.searchTextBox.value.includes(artist.split(" ").join("_")))
+                continue;
+            if (numTags >= maxTags - 1) {
+                this.view.displayInfoMessage("Max tags reached")
+                setTimeout(() => {
+                    this.view.clearInfoMessage()
+                }, 5000);
+                break
+            }
+            if (notNormal) {
+                artists += `( ${artist.split(" ").join("_")} `;
+                notNormal = false
+            } else {
+                artists += `~ ${artist.split(" ").join("_")} `;
+            }
+            numTags++
+        }
+        artists += ")"
+        if (numTags >= maxTags) {
+            this.view.displayInfoMessage(`${maxTags} tags reached`)
+            setTimeout(() => {
+                this.view.clearInfoMessage()
+            }, 5000);
+        }
+        this.view.uiElements.searchTextBox.value += artists
     }
 }

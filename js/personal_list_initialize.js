@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
         'maxHeightTextBox': document.getElementById('max-height'),
         'autoFitSlideCheckBox': document.getElementById('auto-fit-slide'),
         'reverseOrderButton': document.getElementById('reverse-button'),
-        'randomizeOrderButton': document.getElementById('randomize-button')
+        'randomizeOrderButton': document.getElementById('randomize-button'),
+        'slideshowPlaysFullVideo': document.getElementById('slideshow-plays-full-video'),
+        'slideshowGifLoopCount': document.getElementById('slideshow-gif-loop-count'),
+        'slideshowLowDurationMp4Seconds': document.getElementById('slideshow-low-duration-mp4-seconds'),
     });
 });

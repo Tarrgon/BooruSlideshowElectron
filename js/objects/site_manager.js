@@ -36,10 +36,11 @@ class SiteManager {
 			query = query.replace(queryTermRegexp, queryTermReplacement);
 		}
 
-		return query;
+		return encodeURIComponent(query);
 	}
 
 	resetConnection() {
+		console.log("Resetting connection")
 		this.webRequester.resetConnection();
 
 		this.lastPageLoaded = 0;
@@ -109,9 +110,11 @@ class SiteManager {
 		var siteManager = this;
 
 		if (url != null) {
+			console.log(url)
 			this.webRequester.makeWebsiteRequest(
 				url,
 				function (responseText) {
+					// console.log(responseText)
 					siteManager.lastPageLoaded++;
 					siteManager.addSlides(responseText);
 				},
@@ -168,7 +171,7 @@ class SiteManager {
 		var xmlPosts = xml.getElementsByTagName("post");
 		this.xmlPosts = xmlPosts
 
-		this.hasExhaustedSearch = (xmlPosts.length < this.pageLimit);
+		this.hasExhaustedSearch = (xmlPosts.length == 0);
 
 		for (var i = 0; i < xmlPosts.length; i++) {
 			var xmlPost = xmlPosts[i];
@@ -186,7 +189,7 @@ class SiteManager {
 
 		var htmlPosts = html.getElementsByTagName("tag");
 
-		this.hasExhaustedSearch = (htmlPosts.length < this.pageLimit);
+		this.hasExhaustedSearch = (htmlPosts.length == 0);
 
 		for (var i = 0; i < htmlPosts.length; i++) {
 			var htmlPost = htmlPosts[i];
@@ -214,7 +217,7 @@ class SiteManager {
 			// console.log(jsonPosts)
 		}
 
-		this.hasExhaustedSearch = (jsonPosts.length < this.pageLimit);
+		this.hasExhaustedSearch = (jsonPosts.length == 0);
 
 		for (var i = 0; i < jsonPosts.length; i++) {
 			var jsonPost = jsonPosts[i];
@@ -228,6 +231,7 @@ class SiteManager {
 	}
 
 	hasntExhaustedSearch() {
+		console.log(this.isEnabled, !this.hasExhaustedSearch, !this.ranIntoErrorWhileSearching)
 		return this.isEnabled && !this.hasExhaustedSearch && !this.ranIntoErrorWhileSearching;
 	}
 
@@ -250,8 +254,8 @@ class SiteManager {
 				return MEDIA_TYPE_VIDEO;
 			case '.gif':
 				return MEDIA_TYPE_GIF;
-			case '.swf':
 			case '.zip':
+			case '.swf':
 				return MEDIA_TYPE_UNSUPPORTED;
 			default:
 				return MEDIA_TYPE_IMAGE;
@@ -261,7 +265,7 @@ class SiteManager {
 	isMediaTypeSupported(mediaType) {
 		return (mediaType == MEDIA_TYPE_IMAGE && this.sitesManager.model.includeImages) ||
 			(mediaType == MEDIA_TYPE_GIF && this.sitesManager.model.includeGifs) ||
-			(mediaType == MEDIA_TYPE_VIDEO && this.sitesManager.model.includeWebms);
+			(mediaType == MEDIA_TYPE_VIDEO && this.sitesManager.model.includeWebms)
 	}
 
 	isRatingAllowed(rating) {
@@ -271,9 +275,10 @@ class SiteManager {
 			(rating == "s" && this.sitesManager.model.includeSafe)
 	}
 
-	areSomeTagsAreBlacklisted(tags, e6) {
+	areSomeTagsAreBlacklisted(tags) {
 		// console.log(this.sitesManager.model.personalList)
-		return this.sitesManager.model.areSomeTagsAreBlacklisted(tags, e6);
+		if (!blacklistEnabled) return false
+		return this.sitesManager.model.areSomeTagsAreBlacklisted(tags);
 	}
 
 	reformatFileUrl(url) {
