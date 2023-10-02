@@ -1,16 +1,14 @@
-class PersonalListController
-{
-    constructor(uiElements)
-    {
+class PersonalListController {
+    constructor(uiElements) {
         this._model = new PersonalListModel();
         this._view = new PersonalListView(this._model, uiElements);
         this._model.view = this._view;
 
         setTimeout(() => {
-            if(!this._model.personalList.indexed){
+            if (!this._model.personalList.indexed) {
                 this._view.displayWarningMessage("Your favorites are not indexed, filtering will be inaccurate.")
                 var checkInterval = setInterval(() => {
-                    if(this._model.personalList.indexed){ 
+                    if (this._model.personalList.indexed) {
                         this._view.clearWarningMessage()
                         clearInterval(checkInterval)
                     }
@@ -23,23 +21,23 @@ class PersonalListController
         var _this = this;
 
         // Attach view listeners
-        this._view.currentImageClickedEvent.attach(function() {
+        this._view.currentImageClickedEvent.attach(function () {
             _this.currentSlideClicked();
         });
-        
-        this._view.reverseOrderClickEvent.attach(function() {
+
+        this._view.reverseOrderClickEvent.attach(function () {
             _this.reverseOrder();
         });
 
-        this._view.randomizeOrderClickEvent.attach(function() {
+        this._view.randomizeOrderClickEvent.attach(function () {
             _this.randomizeOrder();
         });
 
-        this._view.currentVideoClickedEvent.attach(function() {
+        this._view.currentVideoClickedEvent.attach(function () {
             _this.currentSlideClicked();
         });
-        
-        this._view.currentVideoVolumeChangedEvent.attach(function() {
+
+        this._view.currentVideoVolumeChangedEvent.attach(function () {
             _this.videoVolumeChanged();
         });
 
@@ -58,11 +56,11 @@ class PersonalListController
         this._view.lastNavButtonClickedEvent.attach(function () {
             _this.lastNavButtonClicked();
         });
-        
+
         this._view.goBackTenImagesPressedEvent.attach(function () {
             _this.goBackTenImagesPressed();
         });
-        
+
         this._view.goForwardTenImagesPressedEvent.attach(function () {
             _this.goForwardTenImagesPressed();
         });
@@ -110,26 +108,44 @@ class PersonalListController
         this._view.removeCurrentImageFromFavesPressedEvent.attach(function () {
             _this.removeCurrentImageFromFavesPressed();
         });
-        
-        this._view.forwardVideoEvent.attach(function() {
+
+        this._view.forwardVideoEvent.attach(function () {
             let curVideo = document.getElementById("current-video")
             if (!curVideo.src.startsWith("http")) return
             curVideo.currentTime += 5
         })
 
-        this._view.backwardVideoEvent.attach(function() {
+        this._view.backwardVideoEvent.attach(function () {
             let curVideo = document.getElementById("current-video")
             if (!curVideo.src.startsWith("http")) return
             curVideo.currentTime -= 5
         })
 
+        this._view.playVideoEvent.attach(function () {
+            let curVideo = document.getElementById("current-video")
+            if (!curVideo.src.startsWith("http")) return
+            if (curVideo.paused) curVideo.play()
+            else curVideo.pause()
+        })
+
+        this._view.slideshowPlaysFullVideoChangedEvent.attach(function () {
+            _this.slideshowPlaysFullVideoChanged();
+        })
+
+        this._view.slideshowGifLoopChangedEvent.attach(function () {
+            _this.slideshowGifLoopChanged();
+        })
+
+        this._view.slideshowLowDurationMp4SecondsChangedEvent.attach(function () {
+            _this.slideshowLowDurationMp4SecondsChanged();
+        })
+
         this._model.loadUserSettings();
-        
+
         this._view.updateSlidesAndNavigation();
     }
 
-    currentSlideClicked()
-    {
+    currentSlideClicked() {
         var currentSlide = this._model.getCurrentSlide();
 
         this._view.openUrlInNewWindow(currentSlide.viewableWebsitePostUrl);
@@ -137,102 +153,89 @@ class PersonalListController
         this._model.pauseSlideshow();
     }
 
-    reverseOrder(){
-        if(this._model.filteredPersonalList) this._model.filteredPersonalList.personalListItems.reverse()
+    reverseOrder() {
+        if (this._model.filteredPersonalList) this._model.filteredPersonalList.personalListItems.reverse()
         else this._model.personalList.personalListItems.reverse()
         this._model.currentSlideChangedEvent.notify();
     }
 
     randomizeOrder() {
-        if(this._model.filteredPersonalList) this.randomize(this._model.filteredPersonalList.personalListItems)
+        if (this._model.filteredPersonalList) this.randomize(this._model.filteredPersonalList.personalListItems)
         else this.randomize(this._model.personalList.personalListItems)
         this._model.currentSlideChangedEvent.notify();
     }
 
     randomize(arr) {
-        for(let i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             let newIndex = Math.floor(Math.random() * arr.length)
             let temp = arr[newIndex]
             arr[newIndex] = arr[i]
             arr[i] = temp
         }
     }
-	
-    videoVolumeChanged()
-    {
+
+    videoVolumeChanged() {
         var videoVolume = this._view.getVideoVolume();
         var videoMuted = this._view.getVideoMuted();
-		
+
         this._model.setVideoVolume(videoVolume);
         this._model.setVideoMuted(videoMuted);
     }
 
-    firstNavButtonClicked()
-    {
+    firstNavButtonClicked() {
         this._model.setSlideNumberToFirst();
     }
 
-    previousNavButtonClicked()
-    {
+    previousNavButtonClicked() {
         this._model.decreaseCurrentSlideNumber();
     }
 
-    nextNavButtonClicked()
-    {
+    nextNavButtonClicked() {
         this._model.increaseCurrentSlideNumber();
         // console.log(this._model.getCurrentSlide())
     }
 
-    lastNavButtonClicked()
-    {
+    lastNavButtonClicked() {
         this._model.setSlideNumberToLast();
     }
-	
-    goBackTenImagesPressed()
-    {
+
+    goBackTenImagesPressed() {
         this._model.decreaseCurrentSlideNumberByTen();
     }
-	
-    goForwardTenImagesPressed()
-    {
+
+    goForwardTenImagesPressed() {
         this._model.increaseCurrentSlideNumberByTen();
     }
 
-    playButtonClicked()
-    {
+    playButtonClicked() {
         this._model.startSlideshow();
     }
 
-    pauseButtonClicked()
-    {
+    pauseButtonClicked() {
         this._model.pauseSlideshow();
     }
 
-    enterKeyPressedOutsideOfFilterTextBox()
-    {
+    enterKeyPressedOutsideOfFilterTextBox() {
         this._model.tryToPlayOrPause();
     }
 
-    filterTextChanged()
-    {
+    filterTextChanged() {
         this._model.filterText = this._view.getFilterText();
     }
 
-    enterKeyPressedInFilterTextBox()
-    {
+    enterKeyPressedInFilterTextBox() {
         this._model.filterText = this._view.getFilterText();
-		this._view.removeFocusFromFilterTextBox();
+        this._view.removeFocusFromFilterTextBox();
         this.filterButtonClicked();
     }
 
-    filterButtonClicked()
-    {
+    filterButtonClicked() {
         this._view.clearUI();
         this._view.removeFocusFromFilterButton();
 
         let filterText = this._model.filterText;
 
-        if(filterText == ""){
+        if (filterText == "") {
             this._model.filtered = false
             this._model.filteredPersonalList = null
             this._view.clearUI();
@@ -241,41 +244,37 @@ class PersonalListController
             this._model.currentSlideChangedEvent.notify()
             return
         }
-		
-		//var message = '';
-		
-		//this._view.displayInfoMessage(message);
-		
+
+        //var message = '';
+
+        //this._view.displayInfoMessage(message);
+
         this._model.performFilter(filterText);
     }
 
-    secondsPerSlideChanged()
-    {
+    secondsPerSlideChanged() {
         var secondsPerSlideText = this._view.getSecondsPerSlide();
 
         this._model.setSecondsPerSlideIfValid(secondsPerSlideText);
     }
 
-    maxWidthChanged()
-    {
+    maxWidthChanged() {
         var maxWidthText = this._view.getMaxWidth();
 
-        if (maxWidthText == '')
-        {
-			maxWidthText = null;
+        if (maxWidthText == '') {
+            maxWidthText = null;
         }
-		else if (isNaN(maxWidthText))
-			return;
-		else if (maxWidthText < 1)
+        else if (isNaN(maxWidthText))
             return;
-        
+        else if (maxWidthText < 1)
+            return;
+
         this._model.setMaxWidth(maxWidthText);
     }
 
-    maxHeightChanged()
-    {
+    maxHeightChanged() {
         var maxHeightText = this._view.getMaxHeight();
-        
+
         if (maxHeightText == '') {
             maxHeight = null;
         }
@@ -283,20 +282,30 @@ class PersonalListController
             return;
         else if (maxHeightText < 1)
             return;
-        
+
         this._model.setMaxHeight(maxHeightText);
     }
 
-    autoFitSlideChanged()
-    {
+    autoFitSlideChanged() {
         var autoFitSlide = this._view.getAutoFitSlide();
 
         this._model.setAutoFitSlide(autoFitSlide);
     }
 
-    removeCurrentImageFromFavesPressed()
-    {
+    removeCurrentImageFromFavesPressed() {
         this._model.removeCurrentImageFromFaves();
+    }
+
+    slideshowPlaysFullVideoChanged() {
+        this._model.setSlideshowPlaysFullVideo(this._view.getSlideshowPlaysFullVideo());
+    }
+
+    slideshowGifLoopChanged() {
+        this._model.setSlideshowGifLoop(this._view.getSlideshowGifLoop());
+    }
+
+    slideshowLowDurationMp4SecondsChanged() {
+        this._model.setSlideshowLowDurationMp4Seconds(this._view.getSlideshowLowDurationMp4Seconds());
     }
 
 }

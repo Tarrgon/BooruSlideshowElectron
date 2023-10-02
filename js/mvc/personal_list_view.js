@@ -37,6 +37,12 @@ class PersonalListView {
         this.randomizeOrderClickEvent = new Event(this)
         this.forwardVideoEvent = new Event(this)
         this.backwardVideoEvent = new Event(this)
+        this.playVideoEvent = new Event(this)
+
+        this.slideshowPlaysFullVideoChangedEvent = new Event(this)
+        this.slideshowGifLoopChangedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsChangedEvent = new Event(this)
+
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -90,6 +96,18 @@ class PersonalListView {
             _this.clearInfoMessage();
             _this.updateSlidesAndNavigation();
         });
+
+        this._model.slideshowPlaysFullVideoUpdatedEvent.attach(function () {
+            _this.updateSlideshowPlaysFullVideo();
+        })
+
+        this._model.slideshowGifLoopUpdatedEvent.attach(function () {
+            _this.updateSlideshowGifLoop();
+        })
+
+        this._model.slideshowLowDurationMp4SecondsUpdatedEvent.attach(function () {
+            _this.updateSlideshowLowDurationMp4Seconds();
+        })
     }
 
     attachUiElementListeners() {
@@ -155,7 +173,8 @@ class PersonalListView {
                 key == G_KEY_ID ||
                 key == E_KEY_ID ||
                 key == ONE_KEY_ID ||
-                key == TWO_KEY_ID)) {
+                key == TWO_KEY_ID ||
+                key == THREE_KEY_ID)) {
                 return;
             }
 
@@ -198,6 +217,9 @@ class PersonalListView {
                 }
                 if (key == TWO_KEY_ID) {
                     _this.forwardVideoEvent.notify()
+                }
+                if (key == THREE_KEY_ID) {
+                    _this.playVideoEvent.notify()
                 }
             }
         });
@@ -254,7 +276,6 @@ class PersonalListView {
         this.clearInfoMessage();
         this.clearImage();
         this.clearVideo();
-        this.clearSwf();
         this.hideNavigation();
         this.clearThumbnails();
     }
@@ -360,7 +381,6 @@ class PersonalListView {
         currentImage.style.display = 'inline';
 
         this.clearVideo();
-        this.clearSwf();
         this.updateSlideSize();
     }
 
@@ -371,7 +391,6 @@ class PersonalListView {
         currentVideo.style.display = 'inline';
 
         this.clearImage();
-        this.clearSwf();
         this.updateSlideSize();
         this.updateVideoVolume();
         this.updateVideoMuted();
@@ -396,7 +415,6 @@ class PersonalListView {
 
         var currentImage = this.uiElements.currentImage;
         var currentVideo = this.uiElements.currentVideo;
-        var currentSwf = this.uiElements.currentSwf
 
         var autoFitSlide = this._model.autoFitSlide;
 
@@ -409,11 +427,6 @@ class PersonalListView {
         currentVideo.style.height = null;
         currentVideo.style.maxWidth = null;
         currentVideo.style.maxHeight = null;
-
-        currentSwf.style.width = null;
-        currentSwf.style.height = null;
-        currentSwf.style.maxWidth = null;
-        currentSwf.style.maxHeight = null;
 
         if (autoFitSlide) {
             var viewWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -441,9 +454,6 @@ class PersonalListView {
             else if (currentSlide.isVideo()) {
                 currentVideo.style.width = newWidth + 'px';
                 currentVideo.style.height = newHeight + 'px';
-            } else if (currentSlide.isSwf()) {
-                currentSwf.style.width = newWidth + 'px';
-                currentSwf.style.height = newHeight + 'px';
             }
             else {
                 console.log("Couldn't update slide size because slide isn't image or video.");
@@ -458,8 +468,6 @@ class PersonalListView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxWidth = maxWidth + 'px';
-                } else if (currentSlide.isSwf()) {
-                    currentSwf.style.maxWidth = maxWidth + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max width because slide isn't image or video.");
@@ -474,8 +482,6 @@ class PersonalListView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxHeight = maxHeight + 'px';
-                }else if (currentSlide.isSwf()) {
-                    currentSwf.style.maxHeight = maxHeight + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max height because slide isn't image or video.");
@@ -497,13 +503,6 @@ class PersonalListView {
 
         currentVideo.src = '';
         currentVideo.style.display = 'none';
-    }
-
-    clearSwf() {
-        var currentSwf = this.uiElements.currentSwf;
-
-        currentSwf.src = '';
-        currentSwf.style.display = 'none';
     }
 
     updateVideoVolume() {
@@ -765,5 +764,29 @@ class PersonalListView {
 
             console.log("DONE: " + info.url)
         })
+    }
+
+    updateSlideshowPlaysFullVideo() {
+        this.uiElements.slideshowPlaysFullVideo.checked = this._model.slideshowPlaysFullVideo;
+    }
+
+    getSlideshowPlaysFullVideo() {
+        return this.uiElements.slideshowPlaysFullVideo.checked;
+    }
+
+    updateSlideshowGifLoop() {
+        this.uiElements.slideshowGifLoopCount.value = this._model.slideshowGifLoop;
+    }
+
+    getSlideshowGifLoop() {
+        return Number(this.uiElements.slideshowGifLoopCount.value);
+    }
+
+    updateSlideshowLowDurationMp4Seconds() {
+        this.uiElements.slideshowLowDurationMp4Seconds.value = this._model.slideshowLowDurationMp4Seconds;
+    }
+
+    getSlideshowLowDurationMp4Seconds() {
+        return Number(this.uiElements.slideshowLowDurationMp4Seconds.value);
     }
 }

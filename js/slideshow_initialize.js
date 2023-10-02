@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'infoMessage': document.getElementById('info-message'),
         'currentImage': document.getElementById('current-image'),
         'currentVideo': document.getElementById('current-video'),
-        'currentSwf': document.getElementById('current-swf'),
         'loadingAnimation': document.getElementById('loading-animation'),
         'navigation': document.getElementById('navigation'),
         'currentSlideNumber': document.getElementById('current-slide-number'),
@@ -57,6 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
         'includeDupesCheckBox': document.getElementById('include-dupes'),
         'includeFavoritesCheckBox': document.getElementById('include-faves'),
         'favoriteRemotelyCheckBox': document.getElementById('favorite-remotely'),
-        'startPageNumber': document.getElementById('start-page-number')
+        'startPageNumber': document.getElementById('start-page-number'),
+        'slideshowPlaysFullVideo': document.getElementById('slideshow-plays-full-video'),
+        'slideshowGifLoopCount': document.getElementById('slideshow-gif-loop-count'),
+        'slideshowLowDurationMp4Seconds': document.getElementById('slideshow-low-duration-mp4-seconds'),
     });
 });

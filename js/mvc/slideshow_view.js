@@ -56,6 +56,12 @@ class SlideshowView {
         this.favoriteRemotelyChangedEvent = new Event(this);
         this.forwardVideoEvent = new Event(this)
         this.backwardVideoEvent = new Event(this)
+        this.playVideoEvent = new Event(this)
+        this.selectSearchHistoryItem = new Event(this)
+
+        this.slideshowPlaysFullVideoChangedEvent = new Event(this)
+        this.slideshowGifLoopChangedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsChangedEvent = new Event(this)
 
         this.isSettingVolume = false;
         this.isSettingMute = false;
@@ -191,6 +197,18 @@ class SlideshowView {
         this._model.favoriteButtonUpdatedEvent.attach(function () {
             _this.updateFavoriteButton();
         });
+
+        this._model.slideshowPlaysFullVideoUpdatedEvent.attach(function () {
+            _this.updateSlideshowPlaysFullVideo();
+        })
+
+        this._model.slideshowGifLoopUpdatedEvent.attach(function () {
+            _this.updateSlideshowGifLoop();
+        })
+
+        this._model.slideshowLowDurationMp4SecondsUpdatedEvent.attach(function () {
+            _this.updateSlideshowLowDurationMp4Seconds();
+        })
     }
 
     attachUiElementListeners() {
@@ -252,6 +270,26 @@ class SlideshowView {
             _this.pauseButtonClickedEvent.notify();
         });
 
+        this.uiElements.searchTextBox.addEventListener('input', function (e) {
+            if (e.inputType) return
+            // console.log(e.target.value)
+            let wantedIndex = parseInt(e.target.value.match(/^(-(\d*)-)/)[2])
+            for (let val of _this.uiElements.searchHistory.options) {
+                // console.log(e.target.value)
+                // console.log(val.value)
+                // console.log(e.target.value.startsWith(val.value))
+                let index = parseInt(val.value.match(/^(-(\d*)-)/)[2])
+                // let id = 
+
+                if (wantedIndex == index) {
+                    // console.log(_this._model.searchHistory[val.getAttribute("data-index")])
+                    _this.uiElements.searchTextBox.value = val.value.replace(/^(-(\d*)-)/, "");
+                    return;
+                }
+                // break
+            }
+        });
+
         document.addEventListener('keydown', function (e) {
             var key = e.which || e.keyCode;
 
@@ -271,7 +309,8 @@ class SlideshowView {
                 key == R_KEY_ID ||
                 key == T_KEY_ID ||
                 key == ONE_KEY_ID ||
-                key == TWO_KEY_ID)) {
+                key == TWO_KEY_ID ||
+                key == THREE_KEY_ID)) {
                 return;
             }
 
@@ -316,8 +355,7 @@ class SlideshowView {
                 if (key == R_KEY_ID) {
                     _this._model.toggleTags();
                 }
-                if (key == T_KEY_ID) 
-                {
+                if (key == T_KEY_ID) {
                     _this._model.addArtistsToSearch()
                     _this.searchTextChangedEvent.notify();
                 }
@@ -326,6 +364,9 @@ class SlideshowView {
                 }
                 if (key == TWO_KEY_ID) {
                     _this.forwardVideoEvent.notify()
+                }
+                if (key == THREE_KEY_ID) {
+                    _this.playVideoEvent.notify()
                 }
             }
         });
@@ -458,6 +499,18 @@ class SlideshowView {
         this.uiElements.favoriteRemotelyCheckBox.addEventListener('change', function () {
             _this.favoriteRemotelyChangedEvent.notify();
         });
+
+        this.uiElements.slideshowPlaysFullVideo.addEventListener('change', function () {
+            _this.slideshowPlaysFullVideoChangedEvent.notify();
+        })
+
+        this.uiElements.slideshowGifLoopCount.addEventListener('change', function () {
+            _this.slideshowGifLoopChangedEvent.notify();
+        })
+
+        this.uiElements.slideshowLowDurationMp4Seconds.addEventListener('change', function () {
+            _this.slideshowLowDurationMp4SecondsChangedEvent.notify();
+        })
     }
 
     clearUI() {
@@ -465,7 +518,6 @@ class SlideshowView {
         this.clearInfoMessage();
         this.clearImage();
         this.clearVideo();
-        this.clearSwf();
         this.hideNavigation();
         this.clearThumbnails();
     }
@@ -559,8 +611,6 @@ class SlideshowView {
         }
         else if (currentSlide.isVideo()) {
             this.displayVideo(currentSlide);
-        }else if (currentSlide.isSwf()) {
-            this.displaySwf(currentSlide);
         }
         else {
             console.log("Trying to display slide that isn't an image or video.")
@@ -576,7 +626,6 @@ class SlideshowView {
         currentImage.style.display = 'inline';
 
         this.clearVideo();
-        this.clearSwf();
         this.updateSlideSize();
     }
 
@@ -587,20 +636,6 @@ class SlideshowView {
         currentVideo.style.display = 'inline';
 
         this.clearImage();
-        this.clearSwf();
-        this.updateSlideSize();
-        this.updateVideoVolume();
-        this.updateVideoMuted();
-    }
-
-    displaySwf(currentSlide) {
-        var currentSwf = this.uiElements.currentSwf;
-
-        currentSwf.src = currentSlide.fileUrl;
-        currentSwf.style.display = 'inline';
-
-        this.clearImage();
-        this.clearVideo();
         this.updateSlideSize();
         this.updateVideoVolume();
         this.updateVideoMuted();
@@ -625,7 +660,6 @@ class SlideshowView {
 
         var currentImage = this.uiElements.currentImage;
         var currentVideo = this.uiElements.currentVideo;
-        var currentSwf = this.uiElements.currentSwf;
 
         var autoFitSlide = this._model.autoFitSlide;
 
@@ -638,11 +672,6 @@ class SlideshowView {
         currentVideo.style.height = null;
         currentVideo.style.maxWidth = null;
         currentVideo.style.maxHeight = null;
-
-        currentSwf.style.width = null;
-        currentSwf.style.height = null;
-        currentSwf.style.maxWidth = null;
-        currentSwf.style.maxHeight = null;
 
         if (autoFitSlide) {
             var viewWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -670,9 +699,6 @@ class SlideshowView {
             else if (currentSlide.isVideo()) {
                 currentVideo.style.width = newWidth + 'px';
                 currentVideo.style.height = newHeight + 'px';
-            } else if (currentSlide.isSwf()) {
-                currentSwf.style.width = newWidth + 'px';
-                currentSwf.style.height = newHeight + 'px';
             }
             else {
                 console.log("Couldn't update slide size because slide isn't image or video.");
@@ -687,8 +713,6 @@ class SlideshowView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxWidth = maxWidth + 'px';
-                } else if (currentSlide.isSwf()) {
-                    currentSwf.style.maxWidth = maxWidth + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max width because slide isn't image or video.");
@@ -703,8 +727,6 @@ class SlideshowView {
                 }
                 else if (currentSlide.isVideo()) {
                     currentVideo.style.maxHeight = maxHeight + 'px';
-                }else if (currentSlide.isSwf()) {
-                    currentSwf.style.maxHeight = maxHeight + 'px';
                 }
                 else {
                     console.log("Couldn't update slide max height because slide isn't image or video.");
@@ -726,13 +748,6 @@ class SlideshowView {
 
         currentVideo.src = '';
         currentVideo.style.display = 'none';
-    }
-
-    clearSwf() {
-        var currentSwf = this.uiElements.currentSwf;
-
-        currentSwf.src = '';
-        currentSwf.style.display = 'none';
     }
 
     updateVideoVolume() {
@@ -1094,10 +1109,15 @@ class SlideshowView {
             var searchHistoryItem = this._model.searchHistory[i];
 
             var optionElement = document.createElement("option");
-            optionElement.value = searchHistoryItem;
+            optionElement.value = `-${i}-` + searchHistoryItem;
+            optionElement.setAttribute("data-index", i);
 
             searchHistory.appendChild(optionElement);
         }
+    }
+
+    getSearchHistoryAt(index) {
+        return this._model.searchHistory[index];
     }
 
     getHideBlacklist() {
@@ -1119,11 +1139,11 @@ class SlideshowView {
         //this.validateBlacklist();
     }
 
-	/*validateBlacklist() {
+    /*validateBlacklist() {
         var blacklist = this.uiElements.blacklist.value;
-		
-		var pattern = new RegExp(/[^\s]+/i);
-		console.log(pattern.test(blacklist));
+    	
+        var pattern = new RegExp(/[^\s]+/i);
+        console.log(pattern.test(blacklist));
     }*/
 
     getDerpibooruApiKey() {
@@ -1219,7 +1239,7 @@ class SlideshowView {
                 return;
             }
 
-            console.log("DONE: " + info.url)
+            // console.log("DONE: " + info.url)
         })
     }
 
@@ -1250,5 +1270,29 @@ class SlideshowView {
             this.uiElements.tags.style.display = "none"
             this.uiElements.tags.innerHTML = ""
         }
+    }
+
+    updateSlideshowPlaysFullVideo() {
+        this.uiElements.slideshowPlaysFullVideo.checked = this._model.slideshowPlaysFullVideo;
+    }
+
+    getSlideshowPlaysFullVideo() {
+        return this.uiElements.slideshowPlaysFullVideo.checked;
+    }
+
+    updateSlideshowGifLoop() {
+        this.uiElements.slideshowGifLoopCount.value = this._model.slideshowGifLoop;
+    }
+
+    getSlideshowGifLoop() {
+        return Number(this.uiElements.slideshowGifLoopCount.value);
+    }
+
+    updateSlideshowLowDurationMp4Seconds() {
+        this.uiElements.slideshowLowDurationMp4Seconds.value = this._model.slideshowLowDurationMp4Seconds;
+    }
+
+    getSlideshowLowDurationMp4Seconds() {
+        return Number(this.uiElements.slideshowLowDurationMp4Seconds.value);
     }
 }

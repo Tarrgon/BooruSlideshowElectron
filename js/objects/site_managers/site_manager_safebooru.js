@@ -1,48 +1,39 @@
-class SiteManagerSafebooru extends SiteManager
-{
-    constructor(sitesManager, pageLimit)
-    {
+class SiteManagerSafebooru extends SiteManager {
+	constructor(sitesManager, pageLimit) {
 		super(sitesManager, SITE_SAFEBOORU, 'https://safebooru.org', pageLimit);
-    }
-    
-    buildPingRequestUrl()
-	{
+	}
+
+	buildPingRequestUrl() {
 		return this.url + '/index.php?page=dapi&s=post&q=index&limit=1';
-    }
-    
-    buildRequestUrl(searchText, pageNumber)
-	{
+	}
+
+	buildRequestUrl(searchText, pageNumber) {
 		var query = this.buildSiteSpecificQuery(searchText);
-		
+
 		return this.url + '/index.php?page=dapi&s=post&q=index&tags=' + query + '&pid=' + (pageNumber - 1) + '&limit=' + this.pageLimit;
 	}
 
-	doesResponseTextIndicateOnline(responseText)
-	{
+	doesResponseTextIndicateOnline(responseText) {
 		var parser = new DOMParser();
 		var xml = parser.parseFromString(responseText, "text/xml");
-		
+
 		var xmlPosts = xml.getElementsByTagName("post");
-		
+
 		return (xmlPosts.length > 0);
 	}
 
-	addSlides(responseText)
-	{
+	addSlides(responseText) {
 		this.addXmlSlides(responseText);
 	}
 
-	addSlide(xmlPost)
-	{
+	addSlide(xmlPost) {
 		if (xmlPost.hasAttribute('file_url') &&
-			xmlPost.hasAttribute('preview_url'))
-		{
-			if (this.isPathForSupportedMediaType(xmlPost.getAttribute('file_url')))
-			{
+			xmlPost.hasAttribute('preview_url')) {
+			if (this.isPathForSupportedMediaType(xmlPost.getAttribute('file_url'))) {
 				if (this.areSomeTagsAreBlacklisted(xmlPost.getAttribute('tags')))
 					return;
 
-					// console.log(xmlPost.getAttribute('preview_url'))
+				// console.log(xmlPost.getAttribute('preview_url'))
 
 				var newSlide = new Slide(
 					SITE_SAFEBOORU,
@@ -58,7 +49,9 @@ class SiteManagerSafebooru extends SiteManager
 					xmlPost.getAttribute('md5'),
 					xmlPost.getAttribute('tags')
 				);
-				if(!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
+				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+					return
+				if (!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
 				this.allUnsortedSlides.push(newSlide);
 			}
 		}

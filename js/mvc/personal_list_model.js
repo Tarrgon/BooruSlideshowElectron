@@ -1,3 +1,10 @@
+async function getBufferFromUrl(url) {
+    const response = await axios.get(url, {
+        responseType: 'arraybuffer'
+    })
+    return Buffer.from(response.data, 'base64')
+}
+
 class PersonalListModel {
     constructor() {
         this.view = null;
@@ -18,6 +25,10 @@ class PersonalListModel {
         this.timer = null;
         this.timerMs = 0;
 
+        this.slideshowPlaysFullVideo = false
+        this.slideshowGifLoop = 4
+        this.slideshowLowDurationMp4Seconds = 10
+
         this.sitesManager = new SitesManager(this, 20, 10)
         this.cachedSiteManagers = []
 
@@ -35,6 +46,10 @@ class PersonalListModel {
         this.maxHeightUpdatedEvent = new Event(this);
         this.autoFitSlideUpdatedEvent = new Event(this);
         this.personalListLoadedEvent = new Event(this);
+
+        this.slideshowPlaysFullVideoUpdatedEvent = new Event(this)
+        this.slideshowGifLoopUpdatedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsUpdatedEvent = new Event(this)
 
 
         this.currentListItem = 0;
@@ -67,65 +82,275 @@ class PersonalListModel {
         this.dataLoader.loadUserSettings();
     }
 
+    _min(d0, d1, d2, bx, ay) {
+        return d0 < d1 || d2 < d1
+            ? d0 > d2
+                ? d2 + 1
+                : d0 + 1
+            : bx === ay
+                ? d1
+                : d1 + 1;
+    }
+
+    levenshtein(a, b) {
+        if (a === b) {
+            return 0;
+        }
+
+        if (a.length > b.length) {
+            var tmp = a;
+            a = b;
+            b = tmp;
+        }
+
+        var la = a.length;
+        var lb = b.length;
+
+        while (la > 0 && (a.charCodeAt(la - 1) === b.charCodeAt(lb - 1))) {
+            la--;
+            lb--;
+        }
+
+        var offset = 0;
+
+        while (offset < la && (a.charCodeAt(offset) === b.charCodeAt(offset))) {
+            offset++;
+        }
+
+        la -= offset;
+        lb -= offset;
+
+        if (la === 0 || lb < 3) {
+            return lb;
+        }
+
+        var x = 0;
+        var y;
+        var d0;
+        var d1;
+        var d2;
+        var d3;
+        var dd;
+        var dy;
+        var ay;
+        var bx0;
+        var bx1;
+        var bx2;
+        var bx3;
+
+        var vector = [];
+
+        for (y = 0; y < la; y++) {
+            vector.push(y + 1);
+            vector.push(a.charCodeAt(offset + y));
+        }
+
+        var len = vector.length - 1;
+
+        for (; x < lb - 3;) {
+            bx0 = b.charCodeAt(offset + (d0 = x));
+            bx1 = b.charCodeAt(offset + (d1 = x + 1));
+            bx2 = b.charCodeAt(offset + (d2 = x + 2));
+            bx3 = b.charCodeAt(offset + (d3 = x + 3));
+            dd = (x += 4);
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y];
+                ay = vector[y + 1];
+                d0 = this._min(dy, d0, d1, bx0, ay);
+                d1 = this._min(d0, d1, d2, bx1, ay);
+                d2 = this._min(d1, d2, d3, bx2, ay);
+                dd = this._min(d2, d3, dd, bx3, ay);
+                vector[y] = dd;
+                d3 = d2;
+                d2 = d1;
+                d1 = d0;
+                d0 = dy;
+            }
+        }
+
+        for (; x < lb;) {
+            bx0 = b.charCodeAt(offset + (d0 = x));
+            dd = ++x;
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y];
+                vector[y] = dd = this._min(dy, d0, dd, bx0, vector[y + 1]);
+                d0 = dy;
+            }
+        }
+
+        return dd;
+    }
+
+    tagsPass(tags, singleTag, negate = false, fuzzy = false) {
+        if (!tags || !singleTag) return false;
+
+        let result = false
+        for (let tag of tags) {
+            if (fuzzy) {
+                if (this.levenshtein(singleTag, tag) <= 2) {
+                    result = true
+                    break;
+                }
+            }
+            else {
+                if (singleTag.includes("*")) {
+                    let regex = new RegExp(singleTag.replace("*", ".*"))
+                    if (tag.match(regex)) {
+                        result = true
+                        break
+                    }
+                } else if (tag == singleTag) {
+                    result = true
+                    break;
+                }
+            }
+        }
+
+
+        return negate ? !result : result;
+    }
+
+    passesGroup(item, group) {
+        let passesAnd = true
+        for (let tag of group.and) {
+            let fuzzy = tag.endsWith("~")
+            if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
+                passesAnd = false
+                break
+            }
+        }
+
+        let passesNot = true
+        for (let tag of group.not) {
+            let fuzzy = tag.endsWith("~")
+            if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, true, fuzzy)) {
+                passesNot = false
+                break
+            }
+        }
+
+        let passesOr = false
+        for (let tag of group.or) {
+            let fuzzy = tag.endsWith("~")
+            if (this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
+                passesOr = true
+                break
+            }
+        }
+
+        return (group.or.length == 0 || passesOr) && passesAnd && passesNot
+    }
+
     performFilter(filterText) {
         //this.sitesManager.resetConnections();
-
-        var _this = this;
         let sites = filterText.match(/-?SITE_\w+/gm)
-        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "")
-        filterText = filterText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        var filterTextAsArray = filterText.trim().split(" ").filter(t => t != "" && t != " ")
-        var orTags = filterTextAsArray.filter(tag => tag.startsWith("~"))
-        var orRegex = new RegExp("\\s" + orTags.join("\\s|\\s"))
-        orRegex = new RegExp(orRegex.toString().replace(/~/g, "").slice(1, -1) + "\\s", "gi")
-        var notTags = filterTextAsArray.filter(tag => tag.startsWith("-"))
-        var notRegex = new RegExp("\\s" + notTags.join("\\s|\\s"))
-        notRegex = new RegExp(notRegex.toString().replace(/-/g, "").slice(1, -1) + "\\s", "gi")
+        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "").trim()
+
+        let groups = [
+            {
+                or: [],
+                and: [],
+                not: []
+            }
+        ] // has to pass all groups
+        // group structure:
+        /**  
+        {
+            or: [[tag1, tag2], [tag3, tag4], [tag5]] // has to pass one of the groups
+            and: [tag1, tag2, tag3]
+            not: [tag1, tag2, tag3]]
+        }
+        */
+
+        let tokenized = filterText.split("")
+
+        let getNextToken = function (index) {
+            if (index >= tokenized.length) return null;
+            let token = ""
+            for (let i = index + 1; i < tokenized.length; i++) {
+                let t = tokenized[i]
+                if (t == " ") {
+                    return token
+                } else {
+                    token += t
+                }
+            }
+        }
+
+        let skip = ["~", ")"]
+        let inGroup = false
+        let nextOr = false
+        let token = ""
+        for (let i = 0; i < tokenized.length; i++) {
+            let t = tokenized[i]
+            if (t == " ") {
+                if (token == "(") {
+                    inGroup = true
+                    groups.push({
+                        or: [],
+                        and: [],
+                        not: []
+                    })
+                } else if (token == ")") {
+                    inGroup = false
+                }
+                else if (!skip.includes(token)) {
+                    if (nextOr) {
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                        if (getNextToken(i) != "~") {
+                            nextOr = false
+                        }
+                    } else if (getNextToken(i) == "~") {
+                        nextOr = true
+                        groups[inGroup ? groups.length - 1 : 0].or.push(token)
+                    } else if (token.startsWith("-")) {
+                        groups[inGroup ? groups.length - 1 : 0].not.push(token.substring(1))
+                    }
+                    else {
+                        groups[inGroup ? groups.length - 1 : 0].and.push(token)
+                    }
+                }
+                token = ""
+            }
+            else {
+                token += t
+            }
+        }
+
+        if (token.length > 0 && !skip.includes(token)) {
+            if (nextOr) {
+                groups[inGroup ? groups.length - 1 : 0].or.push(token.substring(1))
+            } else if (token.startsWith("-")) {
+                groups[inGroup ? groups.length - 1 : 0].not.push(token.substring(1))
+            }
+            else {
+                groups[inGroup ? groups.length - 1 : 0].and.push(token)
+            }
+        }
+
         this.filtered = true
+
         var items = this.personalList.personalListItems.filter((item) => {
-            var passedOr = true
-            var passedWild = true
-            if (!item.tags) return false
-            if (item.tags == "") return false
-            if (typeof item.tags != "string") return false
+            if (!item.tags || item.tags == "" || typeof item.tags != "string") return false
             if (sites) {
                 let passSite = false
                 for (let site of sites) {
-                    if (site.startsWith("-") && item.siteId == site.slice(6)) return false
+                    if (site.startsWith("-") && item.siteId == site.slice(5)) return false
                     else if (item.siteId == site.slice(5)) {
                         passSite = true
                         break
                     }
                 }
-                if (passSite) console.log("Passes")
                 if (!passSite) return false
             }
-            for (let i = 0; i < filterTextAsArray.length; i++) {
-                if (filterTextAsArray[i] == "" || filterTextAsArray == " ") continue
-                if (filterTextAsArray[i].startsWith("-") && !filterTextAsArray[i].endsWith("*")) {
-                    let tags = (" " + item.tags.split(" ").join("  ") + " ")
-                    let matched = tags.match(notRegex)
-                    if (matched) return false
-                } else if (filterTextAsArray[i].startsWith("-") && filterTextAsArray[i].endsWith("*") && item.tags.includes(" " + filterTextAsArray[i].slice(1, -1))) {
-                    return false
-                } else if (filterTextAsArray[i].startsWith("~")) {
-                    let tags = (" " + item.tags.split(" ").join("  ") + " ")
-                    let matched = tags.match(orRegex)
-                    // console.log(tags, regex, matched)
-                    passedOr = matched && matched.length > 0
-                } else if (filterTextAsArray[i].endsWith("*") && !filterTextAsArray[i].startsWith("-")) {
-                    passedWild = item.tags.includes(filterTextAsArray[i].slice(0, -1))
-                }
+
+            for (let group of groups) {
+                if (!this.passesGroup(item, group)) return false
             }
-            let noOrNotWildTags = filterTextAsArray.filter(tag => !tag.startsWith("-") && !tag.startsWith("~") && !tag.endsWith("*"))
-            let regex = new RegExp("\\s" + noOrNotWildTags.join("\\s|\\s"))
-            regex = new RegExp(regex.toString().slice(1, -1) + "\\s", "gi")
-            let tags = (" " + item.tags.split(" ").join("  ") + " ")
-            let matched = tags.match(regex)
-            // console.log(passedOr, passedWild, matched != null && matched.length == noOrNotWildTags.length)
-            return filterTextAsArray.length == 0 || ((noOrNotWildTags.length == 0 || matched != null && matched.length == noOrNotWildTags.length) && passedOr && passedWild)
+
+            return true
         })
-        console.log(items)
+
         this.filteredPersonalList = new PersonalList(items, this.dataLoader, this)
         this.currentListItem = 1
         this.currentSlideChangedEvent.notify()
@@ -270,8 +495,42 @@ class PersonalListModel {
         }*/
     }
 
-    startCountdown() {
+    async startCountdown() {
         var millisecondsPerSlide = this.secondsPerSlide * 1000;
+
+        if (this.slideshowPlaysFullVideo) {
+            var slide = this.getCurrentSlide();
+            if (slide.mediaType == MEDIA_TYPE_GIF) {
+                var buffer = await getBufferFromUrl(slide.fileUrl)
+                var frames = await gifFrames({ url: buffer, frames: "all", outputType: "png" })
+                let duration = 0
+                for (let frame of frames) {
+                    duration += frame.frameInfo.delay
+                }
+                millisecondsPerSlide = duration * 10
+
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += duration * 10;
+                }
+            } else if (slide.mediaType == MEDIA_TYPE_VIDEO) {
+                if (this.view.uiElements.currentVideo.readyState === 4) {
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                } else {
+                    await new Promise(resolve => {
+                        this.view.uiElements.currentVideo.onloadeddata = () => {
+                            resolve();
+                        }
+                    })
+
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                }
+                
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += this.view.uiElements.currentVideo.duration * 1000;
+                }
+            }
+        }
+
 
         var _this = this;
 
@@ -327,6 +586,7 @@ class PersonalListModel {
     }
 
     getCurrentSlide() {
+        if (this.filtered && this.filteredPersonalList.length == 0) return null
         if (this.currentListItem == 0)
             return null;
         let loadedSlide = this.loadedSlides.find(t => t.id == this.getCurrentSlideID())
@@ -584,6 +844,30 @@ class PersonalListModel {
 
     setFavoriteRemotely(onOrOff) {
         this.favoriteRemotely = onOrOff;
+    }
+
+    setSlideshowPlaysFullVideo(onOrOff) {
+        this.slideshowPlaysFullVideo = onOrOff;
+
+        this.dataLoader.saveSlideshowPlaysFullVideo();
+
+        this.slideshowPlaysFullVideoUpdatedEvent.notify();
+    }
+
+    setSlideshowGifLoop(num) {
+        this.slideshowGifLoop = num;
+
+        this.dataLoader.saveSlideshowGifLoop();
+
+        this.slideshowGifLoopUpdatedEvent.notify();
+    }
+
+    setSlideshowLowDurationMp4Seconds(num) {
+        this.slideshowLowDurationMp4Seconds = num;
+
+        this.dataLoader.saveSlideshowLowDurationMp4Seconds();
+
+        this.slideshowLowDurationMp4SecondsUpdatedEvent.notify();
     }
 }
 

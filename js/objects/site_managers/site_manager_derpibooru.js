@@ -110,7 +110,9 @@ class SiteManagerDerpibooru extends SiteManager {
 					jsonPost.sha512_hash,
 					tags
 				);
-				if(!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
+				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+					return
+				if (!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
 				this.allUnsortedSlides.push(newSlide);
 			}
 		}

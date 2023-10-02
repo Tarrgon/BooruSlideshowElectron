@@ -1,7 +1,5 @@
-class Slide
-{
-	constructor(siteId, id, fileUrl, previewFileUrl, viewableWebsitePostUrl, width, height, date, score, mediaType, md5, tags, rawTags)
-	{
+class Slide {
+	constructor(siteId, id, fileUrl, previewFileUrl, viewableWebsitePostUrl, width, height, date, score, mediaType, md5, tags, rawTags) {
 		// console.log("New Slide")
 		this.siteId = siteId;
 		this.id = id;
@@ -21,10 +19,10 @@ class Slide
 		this.callbackToRunAfterPreloadingFinishes = null;
 		this.tags = tags;
 		this.rawTags = rawTags
+		this.preloadCount = 0;
 	}
 
-	clone()
-	{
+	clone() {
 		// console.log(this.tags)
 		return new Slide(
 			this.siteId,
@@ -43,99 +41,112 @@ class Slide
 		);
 	}
 
-	preload()
-	{
+	preload() {
 		// console.log("preloading")
-		if (!this.isPreloaded && !this.isPreloading)
-		{
+		if (!this.isPreloaded && !this.isPreloading) {
 			this.isPreloading = true;
 			if (this.isImageOrGif())
 				this.preloadImage();
-			else if (this.isVideo())
+			else if (this.isVideo()) {
 				this.preloadVideo();
-			else
-			{
+			}	
+			else {
 				console.log("Couldn't determine type of media to preload.");
 				console.log(this);
 			}
 		}
 	}
 
-	preloadImage()
-	{
+	preloadImage() {
+		if (this.preloadCount > 10)
+			return
+		this.preloadCount++
 		this.preloadingImage = new Image();
-		
+
 		var slide = this;
-		
-		this.preloadingImage.onload = function(){
+
+		this.preloadingImage.onload = function () {
+			this.preloadCount--
 			slide.isPreloaded = true;
 			slide.isPreloading = false;
-			
-			if (slide.callbackToRunAfterPreloadingFinishes != null)
-			{
+
+			if (slide.callbackToRunAfterPreloadingFinishes != null) {
 				slide.callbackToRunAfterPreloadingFinishes.call(slide);
 			}
 		}
-		
-		this.preloadingImage.onerror = function(){
+
+		this.preloadingImage.onerror = function () {
+			this.preloadCount--
 			this.isPreloading = false;
 		}
-		
+
 		this.preloadingImage.src = this.fileUrl;
 	}
 
-	preloadVideo()
-	{
+	preloadVideo() {
+		if (this.preloadCount > 10)
+			return
+		this.preloadCount++
 		this.preloadingVideo = document.createElement('video');
-		
+
 		var slide = this;
-		
-		this.preloadingVideo.addEventListener('loadeddata', function() {
+
+		this.preloadingVideo.addEventListener('loadeddata', function () {
+			this.preloadCount--
 			slide.isPreloaded = true;
 			slide.isPreloading = false;
 
-			if (slide.callbackToRunAfterPreloadingFinishes != null)
-			{
+			if (slide.callbackToRunAfterPreloadingFinishes != null) {
 				slide.callbackToRunAfterPreloadingFinishes.call(slide);
 			}
 		}, false);
-		
-		this.preloadingVideo.addEventListener('error', function() {
+
+		this.preloadingVideo.addEventListener('error', function () {
+			this.preloadCount--
 			this.isPreloading = false;
 		}, true);
-		
+
 		this.preloadingVideo.src = this.fileUrl;
 		this.preloadingVideo.load();
 	}
 
-	addCallback(callback)
-	{
+	addCallback(callback) {
 		this.callbackToRunAfterPreloadingFinishes = callback;
 	}
 
-	clearCallback()
-	{
+	clearCallback() {
 		// console.log("Cleared")
 		this.callbackToRunAfterPreloadingFinishes = null;
 	}
 
-	isImageOrGif()
-	{
+	isImageOrGif() {
 		return this.mediaType == MEDIA_TYPE_IMAGE || this.mediaType == MEDIA_TYPE_GIF;
 	}
 
-	isVideo()
-	{
+	isVideo() {
 		return this.mediaType == MEDIA_TYPE_VIDEO;
 	}
 
-	isSwf()
-	{
-		return this.mediaType == MEDIA_TYPE_SWF;
+	isGif() {
+		return this.mediaType == MEDIA_TYPE_GIF;
 	}
 
-	toString()
-	{
+	isGifOrVideo() {
+		return this.mediaType == MEDIA_TYPE_GIF || this.mediaType == MEDIA_TYPE_VIDEO;
+	}
+
+	getVideoDuration() {
+		if (this.isVideo() && this.preloadingVideo.readyState > 0) {
+			return this.preloadingVideo.duration;
+		}
+		else if (this.isGif()) {
+			
+		} else {
+			return -1
+		}
+	}
+
+	toString() {
 		return 'Slide ' + this.id + ' ' + this.fileUrl + ' ' + this.fileUrl + ' ' + this.previewFileUrl + ' ' + this.width + ' ' + this.height;
 	}
 }
