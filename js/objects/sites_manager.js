@@ -78,6 +78,8 @@ class SitesManager {
 	}
 
 	enableSites(sites) {
+		console.log("Enabling sites")
+		console.log(sites)
 		for (var i = 0; i < sites.length; i++) {
 			var site = sites[i];
 
@@ -86,10 +88,12 @@ class SitesManager {
 	}
 
 	enableSite(site) {
+		console.log("Enabling site")
 		for (var i = 0; i < this.siteManagers.length; i++) {
 			var siteManager = this.siteManagers[i];
 
 			if (siteManager.id == site) {
+				console.log("Enabling site: " + site)
 				siteManager.enable();
 				return;
 			}
@@ -125,6 +129,7 @@ class SitesManager {
 	}
 
 	resetConnections() {
+		console.log("Resetting all connections")
 		for (var i = 0; i < this.siteManagers.length; i++) {
 			var siteManager = this.siteManagers[i];
 
@@ -163,6 +168,7 @@ class SitesManager {
 
 	performSearchUntilWeHaveEnoughSlides(doneSearchingAllSitesCallback) {
 		if (this.doMoreSlidesNeedToBeLoaded()) {
+			console.log("More need to be loaded")
 			var sitesManager = this;
 
 			this.searchSites(function () {
@@ -170,6 +176,7 @@ class SitesManager {
 			});
 		}
 		else {
+			console.log("No more need to be loaded")
 			this.totalSearchesDoneSinceLast = 0
 			doneSearchingAllSitesCallback.call(this);
 		}
@@ -182,12 +189,15 @@ class SitesManager {
 		for (var i = 0; i < this.siteManagers.length; i++) {
 			var siteManager = this.siteManagers[i];
 
+			console.log(siteManager.isOnline)
+			console.log(siteManager.hasntExhaustedSearch())
 			if (siteManager.isOnline && siteManager.hasntExhaustedSearch()) {
 				var sitesManager = this;
 
 				siteManager.performSearch(this.searchText, function () {
 					sitesManager.siteManagersCurrentlySearching--;
 
+					console.log(sitesManager.siteManagersCurrentlySearching)
 					if (sitesManager.siteManagersCurrentlySearching == 0) {
 						sitesManager.buildSortedSlideList();
 						if (sitesManager.model.nonAPITags.length > 0) {
@@ -373,6 +383,8 @@ class SitesManager {
 
 	doMoreSlidesNeedToBeLoaded() {
 		// console.log(this.totalSearchesDoneSinceLast)
+		console.log(this.getTotalSlideNumber(), this.currentSlideNumber, this.getTotalSlideNumber() - this.currentSlideNumber)
+		if (this.getTotalSlideNumber() - this.currentSlideNumber - 1 <= 0) return true
 		if(this.totalSearchesDoneSinceLast > 10) return false
 		if (!this.areThereMoreLoadableSlides()) {
 			return false;

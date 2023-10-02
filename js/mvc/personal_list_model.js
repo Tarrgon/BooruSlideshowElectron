@@ -1,3 +1,10 @@
+async function getBufferFromUrl(url) {
+    const response = await axios.get(url, {
+        responseType: 'arraybuffer'
+    })
+    return Buffer.from(response.data, 'base64')
+}
+
 class PersonalListModel {
     constructor() {
         this.view = null;
@@ -18,6 +25,10 @@ class PersonalListModel {
         this.timer = null;
         this.timerMs = 0;
 
+        this.slideshowPlaysFullVideo = false
+        this.slideshowGifLoop = 4
+        this.slideshowLowDurationMp4Seconds = 10
+
         this.sitesManager = new SitesManager(this, 20, 10)
         this.cachedSiteManagers = []
 
@@ -35,6 +46,10 @@ class PersonalListModel {
         this.maxHeightUpdatedEvent = new Event(this);
         this.autoFitSlideUpdatedEvent = new Event(this);
         this.personalListLoadedEvent = new Event(this);
+
+        this.slideshowPlaysFullVideoUpdatedEvent = new Event(this)
+        this.slideshowGifLoopUpdatedEvent = new Event(this)
+        this.slideshowLowDurationMp4SecondsUpdatedEvent = new Event(this)
 
 
         this.currentListItem = 0;
@@ -178,14 +193,13 @@ class PersonalListModel {
                 }
             }
             else {
-                if (singleTag.includes("*"))
-                {
+                if (singleTag.includes("*")) {
                     let regex = new RegExp(singleTag.replace("*", ".*"))
                     if (tag.match(regex)) {
                         result = true
                         break
                     }
-                }else if (tag == singleTag) {
+                } else if (tag == singleTag) {
                     result = true
                     break;
                 }
@@ -196,11 +210,9 @@ class PersonalListModel {
         return negate ? !result : result;
     }
 
-    passesGroup(item, group)
-    {
+    passesGroup(item, group) {
         let passesAnd = true
-        for (let tag of group.and)
-        {
+        for (let tag of group.and) {
             let fuzzy = tag.endsWith("~")
             if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
                 passesAnd = false
@@ -209,21 +221,18 @@ class PersonalListModel {
         }
 
         let passesNot = true
-        for (let tag of group.not)
-        {
+        for (let tag of group.not) {
             let fuzzy = tag.endsWith("~")
             if (!this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, true, fuzzy)) {
                 passesNot = false
                 break
             }
         }
-        
+
         let passesOr = false
-        for (let tag of group.or)
-        {
+        for (let tag of group.or) {
             let fuzzy = tag.endsWith("~")
-            if (this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy))
-            {
+            if (this.tagsPass(item.tags.split(" "), fuzzy ? tag.substring(0, tag.length - 1) : tag, false, fuzzy)) {
                 passesOr = true
                 break
             }
@@ -235,7 +244,7 @@ class PersonalListModel {
     performFilter(filterText) {
         //this.sitesManager.resetConnections();
         let sites = filterText.match(/-?SITE_\w+/gm)
-        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "")
+        filterText = filterText.replace(/\s?-?SITE_\w+\s?/gm, "").trim()
 
         let groups = [
             {
@@ -308,7 +317,7 @@ class PersonalListModel {
             }
         }
 
-        if (!skip.includes(token)) {
+        if (token.length > 0 && !skip.includes(token)) {
             if (nextOr) {
                 groups[inGroup ? groups.length - 1 : 0].or.push(token.substring(1))
             } else if (token.startsWith("-")) {
@@ -326,7 +335,7 @@ class PersonalListModel {
             if (sites) {
                 let passSite = false
                 for (let site of sites) {
-                    if (site.startsWith("-") && item.siteId == site.slice(6)) return false
+                    if (site.startsWith("-") && item.siteId == site.slice(5)) return false
                     else if (item.siteId == site.slice(5)) {
                         passSite = true
                         break
@@ -486,8 +495,42 @@ class PersonalListModel {
         }*/
     }
 
-    startCountdown() {
+    async startCountdown() {
         var millisecondsPerSlide = this.secondsPerSlide * 1000;
+
+        if (this.slideshowPlaysFullVideo) {
+            var slide = this.getCurrentSlide();
+            if (slide.mediaType == MEDIA_TYPE_GIF) {
+                var buffer = await getBufferFromUrl(slide.fileUrl)
+                var frames = await gifFrames({ url: buffer, frames: "all", outputType: "png" })
+                let duration = 0
+                for (let frame of frames) {
+                    duration += frame.frameInfo.delay
+                }
+                millisecondsPerSlide = duration * 10
+
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += duration * 10;
+                }
+            } else if (slide.mediaType == MEDIA_TYPE_VIDEO) {
+                if (this.view.uiElements.currentVideo.readyState === 4) {
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                } else {
+                    await new Promise(resolve => {
+                        this.view.uiElements.currentVideo.onloadeddata = () => {
+                            resolve();
+                        }
+                    })
+
+                    millisecondsPerSlide = this.view.uiElements.currentVideo.duration * 1000;
+                }
+                
+                while (millisecondsPerSlide < this.secondsPerSlide * 1000) {
+                    millisecondsPerSlide += this.view.uiElements.currentVideo.duration * 1000;
+                }
+            }
+        }
+
 
         var _this = this;
 
@@ -543,6 +586,7 @@ class PersonalListModel {
     }
 
     getCurrentSlide() {
+        if (this.filtered && this.filteredPersonalList.length == 0) return null
         if (this.currentListItem == 0)
             return null;
         let loadedSlide = this.loadedSlides.find(t => t.id == this.getCurrentSlideID())
@@ -800,6 +844,30 @@ class PersonalListModel {
 
     setFavoriteRemotely(onOrOff) {
         this.favoriteRemotely = onOrOff;
+    }
+
+    setSlideshowPlaysFullVideo(onOrOff) {
+        this.slideshowPlaysFullVideo = onOrOff;
+
+        this.dataLoader.saveSlideshowPlaysFullVideo();
+
+        this.slideshowPlaysFullVideoUpdatedEvent.notify();
+    }
+
+    setSlideshowGifLoop(num) {
+        this.slideshowGifLoop = num;
+
+        this.dataLoader.saveSlideshowGifLoop();
+
+        this.slideshowGifLoopUpdatedEvent.notify();
+    }
+
+    setSlideshowLowDurationMp4Seconds(num) {
+        this.slideshowLowDurationMp4Seconds = num;
+
+        this.dataLoader.saveSlideshowLowDurationMp4Seconds();
+
+        this.slideshowLowDurationMp4SecondsUpdatedEvent.notify();
     }
 }
 

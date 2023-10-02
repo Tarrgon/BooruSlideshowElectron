@@ -35,7 +35,11 @@ class DataLoader {
             'searchHistory',
             'includeDupes',
             'includeFavorites',
-            'favoriteRemotely'],
+            'favoriteRemotely',
+            'slideshowPlaysFullVideo',
+            'slideshowGifLoop',
+            'slideshowLowDurationMp4Seconds'
+        ],
             function (error, data) {
                 for (let prop in data) {
                     // console.log(prop, data[prop])
@@ -70,69 +74,126 @@ class DataLoader {
                     var favoriteRemotely = data['favoriteRemotely']
                     var danbooruLogin = data['danbooruLogin']
                     var danbooruApiKey = data['danbooruApiKey']
+                    var slideshowPlaysFullVideo = data['slideshowPlaysFullVideo']
+                    var slideshowGifLoop = data['slideshowGifLoop']
+                    var slideshowLowDurationMp4Seconds = data['slideshowLowDurationMp4Seconds']
 
                     if (videoVolume == null) {
-                        _this._model.setVideoVolume(_this._model.videoVolume);
+                        try {
+                            _this._model.setVideoVolume(_this._model.videoVolume);
+                        } catch (e) { }
                     }
                     else {
                         if (_this._model.videoVolume != videoVolume) {
-                            _this._model.setVideoVolume(videoVolume);
+                            try {
+                                _this._model.setVideoVolume(videoVolume);
+                            } catch (e) { }
                         }
                     }
 
                     if (videoMuted == null) {
-                        _this._model.setVideoMuted(_this._model.videoMuted);
+                        try {
+                            _this._model.setVideoMuted(_this._model.videoMuted);
+                        } catch (e) { }
                     }
                     else {
                         if (_this._model.videoMuted != videoMuted) {
-                            _this._model.setVideoMuted(videoMuted);
+                            try {
+                                _this._model.setVideoMuted(videoMuted);
+                            } catch (e) { }
                         }
                     }
 
                     if (_this._model.secondsPerSlide != secondsPerSlide) {
-                        _this._model.setSecondsPerSlideIfValid(secondsPerSlide);
+                        try {
+                            _this._model.setSecondsPerSlideIfValid(secondsPerSlide);
+                        } catch (e) { }
                     }
 
                     if (_this._model.maxWidth != maxWidth) {
-                        _this._model.setMaxWidth(maxWidth);
+                        try {
+                            _this._model.setMaxWidth(maxWidth);
+                        } catch (e) { }
                     }
 
                     if (_this._model.maxHeight != maxHeight) {
-                        _this._model.setMaxHeight(maxHeight);
+                        try {
+                            _this._model.setMaxHeight(maxHeight);
+                        } catch (e) { }
                     }
 
                     if (autoFitSlide != null) {
                         if (_this._model.autoFitSlide != autoFitSlide) {
-                            _this._model.setAutoFitSlide(autoFitSlide);
+                            try {
+                                _this._model.setAutoFitSlide(autoFitSlide);
+                            } catch (e) { }
                         }
                     }
 
                     if (e621Login != null && _this._model.e621Login != e621Login) {
-                        _this._model.setE621Login(e621Login);
+                        try {
+                            _this._model.setE621Login(e621Login);
+                        } catch (e) { }
                     }
 
                     if (e621ApiKey != null && _this._model.e621ApiKey != e621ApiKey) {
-                        _this._model.setE621ApiKey(e621ApiKey);
+                        try {
+                            _this._model.setE621ApiKey(e621ApiKey);
+                        } catch (e) { }
                     }
 
                     if (gelbooruLogin != null && _this._model.gelbooruLogin != gelbooruLogin) {
-                        _this._model.setGelbooruLogin(gelbooruLogin);
+                        try {
+                            _this._model.setGelbooruLogin(gelbooruLogin);
+                        } catch (e) { }
                     }
 
                     if (gelbooruApiKey != null && _this._model.gelbooruApiKey != gelbooruApiKey) {
-                        _this._model.setGelbooruApiKey(gelbooruApiKey);
+                        try {
+                            _this._model.setGelbooruApiKey(gelbooruApiKey);
+                        } catch (e) { }
                     }
 
                     if (danbooruLogin != null && _this._model.danbooruLogin != danbooruLogin) {
-                        _this._model.setDanbooruLogin(danbooruLogin);
+                        try {
+                            _this._model.setDanbooruLogin(danbooruLogin);
+                        } catch (e) { }
                     }
 
                     if (danbooruApiKey != null && _this._model.danbooruApiKey != danbooruApiKey) {
-                        _this._model.setDanbooruApiKey(danbooruApiKey);
+                        try {
+                            _this._model.setDanbooruApiKey(danbooruApiKey);
+                        } catch (e) { }
                     }
 
                     if (favoriteRemotely != null && _this._model.favoriteRemotely != favoriteRemotely) {
-                        _this._model.setFavoriteRemotely(favoriteRemotely);
+                        try {
+                            _this._model.setFavoriteRemotely(favoriteRemotely);
+                        } catch (e) { }
+                    }
+
+                    if (slideshowPlaysFullVideo != null) {
+                        if (_this._model.slideshowPlaysFullVideo != slideshowPlaysFullVideo) {
+                            try {
+                                _this._model.setSlideshowPlaysFullVideo(slideshowPlaysFullVideo);
+                            } catch (e) { }
+                        }
+                    }
+
+                    if (slideshowGifLoop != null) {
+                        if (_this._model.slideshowGifLoop != slideshowGifLoop) {
+                            try {
+                                _this._model.setSlideshowGifLoop(slideshowGifLoop);
+                            } catch (e) { }
+                        }
+                    }
+
+                    if (slideshowLowDurationMp4Seconds != null) {
+                        if (_this._model.slideshowLowDurationMp4Seconds != slideshowLowDurationMp4Seconds) {
+                            try {
+                                _this._model.setSlideshowLowDurationMp4Seconds(slideshowLowDurationMp4Seconds);
+                            } catch (e) { }
+                        }
                     }
 
                     if (_this._model instanceof SlideshowModel) {
@@ -266,6 +327,12 @@ class DataLoader {
                 }
             }
         );
+
+        this.storage.get('seenList', function (error, seenList) {
+            if (seenList != null) {
+                _this._model.seenList = seenList;
+            }
+        })
     }
 
     addPropertyIfExists(sitesToSearch, cleanSitesToSearch, siteEnum) {
@@ -389,9 +456,30 @@ class DataLoader {
         this.storage.set('favoriteRemotely', { 'favoriteRemotely': this._model.favoriteRemotely });
     }
 
+    saveSlideshowPlaysFullVideo() {
+        this.storage.set('slideshowPlaysFullVideo', { 'slideshowPlaysFullVideo': this._model.slideshowPlaysFullVideo });
+    }
+
+    saveSlideshowGifLoop() {
+        this.storage.set('slideshowGifLoop', { 'slideshowGifLoop': this._model.slideshowGifLoop });
+    }
+
+    saveSlideshowLowDurationMp4Seconds() {
+        this.storage.set('slideshowLowDurationMp4Seconds', { 'slideshowLowDurationMp4Seconds': this._model.slideshowLowDurationMp4Seconds });
+    }
+
     savePersonalList(items) {
         // console.log(items)
         this.storage.set('personalListItems', { 'personalListItems': items ? items : this._model.personalList.personalListItems });
+        // console.log("Saved", this._model.personalList.personalListItems)
+    }
+
+    saveSeenList(seenList) {
+        // console.log(items)
+        while (seenList.seenList.length > seenList.max) {
+            seenList.seenList.shift();
+        }
+        this.storage.set('seenList', seenList);
         // console.log("Saved", this._model.personalList.personalListItems)
     }
 }

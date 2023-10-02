@@ -54,7 +54,7 @@ class PersonalList
             if(!i) i = window.index
             if(items[i] && items[i].tags && typeof items[i].tags == "string"){
                 i++
-                console.log("return")
+                // console.log("return")
                 _this.dataLoader.savePersonalList(items)
                 return
             }

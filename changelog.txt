@@ -1,5 +1,29 @@
 Changelog
 
+Version 11.0
+* [Feature] The `3` key will now pause videos
+* [Feature] Using slideshow can now play full videos and gifs. Additionally, videos considered "low duration" can be set to loop multiple times
+* [Feature] Blacklist now supports tag grouping
+    * `( female male )` means that an image won't show if it's tagged *both* `female` and `male`
+		* Blacklist tag groups support `or` functionality for negating or tags
+        * `( -female ~ -ambiguous_gender )` means the post must either contain the `female` or `ambiguous_gender`, or both
+			  * Don't ask why this was added, it's useful and my dignity can only take so much beating
+* [Feature] Blacklist can now be negated using `-`
+    * `-female` means the post must be tagged `female`. This is essentially to free up used tags in the search itself
+* [Feature] Personal list filtering has been upgraded significantly
+    * Supports tag grouping now, mainly for `or` functionality
+			* `( female ~ ambiguous_gender )` means the favorited image will only show if it has either `female` or `ambiguous_gender`, or both
+		  * Supports `or` and `not` functionality, however `or not` is not really going to work as expected
+* [Feature] The `T` key will add artists currently in the post to the search bar, for the next search. This does not interfere with the current search, you must press search again for the changes to take place
+    * Supports e621, rule34.xxx, konachan, and realbooru (if realbooru will ever work)
+    * This will ignore `unknown_artist`, `anonymous_artist`, `conditional_dnp`, and `sound_warning` as you usually don't want to search these
+* [Feature] Added a seen list, which will prevent showing the same slide next time you search. Stores 1 million md5 hashes (which will take about 32MB of storage when full)
+    * There may eventually be an easy way to turn this off, however for now if you want to turn it off, you'll need to press `Ctrl + Shift + i` to open the dev tools, go to console and execute `slideshowController._model.showSeen = true` each time you open the application. **This does not save**
+* [Fix] The search history now supports theoretically infinite values as by default input values get cut off. They are now indexed and recalled by the index rather than the value
+    * Still only 100 items are saved
+* [Fix] Limited preloading to only loading 10 in advance to speed up overall loading, however this can go on infinitely as slides are loaded
+* [Removed] Removed some old code relating to an experintal flash player that didn't work out
+
 Version 10.1
 * [Feature] The 1 and 2 keys will now jump backwards and forwards 5 seconds if the current slide is a video.
 * [Feature] Added a starting page box that defines the page to start searching from

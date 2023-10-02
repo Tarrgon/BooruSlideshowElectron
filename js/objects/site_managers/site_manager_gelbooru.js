@@ -47,6 +47,8 @@ class SiteManagerGelbooru extends SiteManager {
 					xmlPost.querySelector('tags').innerHTML
 				);
 				if (!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
+				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+					return
 				this.allUnsortedSlides.push(newSlide);
 			}
 		}
