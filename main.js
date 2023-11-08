@@ -12,7 +12,8 @@ function createWindow () {
     height: 600,
     icon: "img/bs_icon_19.png",
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      enableRemoteModule: true
     }
   })
   win.removeMenu()

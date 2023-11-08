@@ -917,7 +917,7 @@ class SlideshowModel {
         let notNormal = this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] != ")"
         if (this.view.uiElements.searchTextBox.value[this.view.uiElements.searchTextBox.value.length - 1] == ")") this.view.uiElements.searchTextBox.value = this.view.uiElements.searchTextBox.value.substring(0, this.view.uiElements.searchTextBox.value.length - 1)
         for (let artist of currentSlide.rawTags.artist) {
-            if (artist == "unknown_artist" || artist == "anonymous_artist" || artist == "conditional_dnp" || artist == "sound_warning" || this.view.uiElements.searchTextBox.value.includes(artist.split(" ").join("_")))
+            if (artist == "unknown_artist" || artist == "third-party_edit" || artist == "anonymous_artist" || artist == "conditional_dnp" || artist == "sound_warning" || artist == "epilepsy_warning" || this.view.uiElements.searchTextBox.value.includes(artist.split(" ").join("_")))
                 continue;
             if (numTags >= maxTags - 1) {
                 this.view.displayInfoMessage("Max tags reached")
