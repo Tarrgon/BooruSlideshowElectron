@@ -61,7 +61,7 @@ class SiteManagerDanbooru extends SiteManager {
 					jsonPost.tag_string
 				);
 				if (!this.sitesManager.model.includeFavorites && this.sitesManager.model.personalList.contains(newSlide)) return
-				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
 					return
 				this.allUnsortedSlides.push(newSlide);
 			}

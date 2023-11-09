@@ -49,7 +49,7 @@ class SiteManagerRule34 extends SiteManager {
 					xmlPost.getAttribute('md5'),
 					xmlPost.getAttribute('tags')
 				);
-				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
+				if (!this.sitesManager.model.showSeen && this.sitesManager.model.seenList != null && this.sitesManager.model.seenList.seenList != null && this.sitesManager.model.seenList.seenList.includes(newSlide.md5))
 				{
 					// console.log("Skipping")
 					return false

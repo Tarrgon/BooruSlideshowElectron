@@ -113,7 +113,7 @@ class SlideshowModel {
 
         let _this = this
         this.currentSlideChangedEvent.attach(function () {
-            if (_this.seenList != null) {
+            if (_this.seenList != null && _this.seenList.seenList != null) {
                 if (_this.getCurrentSlide()) {
                     if (!_this.seenList.seenList.includes(_this.getCurrentSlide().md5)) {
                         _this.seenList.seenList.push(_this.getCurrentSlide().md5)
